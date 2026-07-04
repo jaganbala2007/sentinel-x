@@ -1,0 +1,141 @@
+# Sentinel-X Docker Compose
+# ==========================
+# Orchestrates the full Sentinel-X backend stack:
+#   - FastAPI backend (port 8080)
+#   - PostgreSQL database (port 5432)
+#   - Redis telemetry cache (port 6379)
+#   - Mosquitto MQTT broker (port 1883)
+#   - Nginx reverse proxy + frontend (port 8000)
+#
+# Usage:
+#   docker-compose up -d           # Start all services
+#   docker-compose logs -f backend # Tail backend logs
+#   docker-compose down -v         # Stop and remove volumes
+
+version: "3.9"
+
+services:
+
+  # ------------------------------------------------------------------
+  # FastAPI Backend
+  # ------------------------------------------------------------------
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: sentinelx-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://sentinel:sentinel@postgres:5432/sentinelx
+      - REDIS_URL=redis://redis:6379/0
+      - MQTT_BROKER_HOST=mqtt
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mqtt:
+        condition: service_started
+    networks:
+      - sentinel-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ------------------------------------------------------------------
+  # PostgreSQL Database
+  # ------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: sentinelx-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sentinelx
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: sentinel
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - sentinel-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel -d sentinelx"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------------
+  # Redis Telemetry Cache
+  # ------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: sentinelx-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sentinel-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ------------------------------------------------------------------
+  # Mosquitto MQTT Broker (IoT Sensor Ingestion)
+  # ------------------------------------------------------------------
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: sentinelx-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    networks:
+      - sentinel-net
+
+  # ------------------------------------------------------------------
+  # Nginx — Frontend + Reverse Proxy
+  # ------------------------------------------------------------------
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: sentinelx-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../frontend/src:/usr/share/nginx/html:ro
+      - ../assets:/usr/share/nginx/html/assets:ro
+    depends_on:
+      - backend
+    networks:
+      - sentinel-net
+
+# ------------------------------------------------------------------
+# Named Volumes
+# ------------------------------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ------------------------------------------------------------------
+# Network
+# ------------------------------------------------------------------
+networks:
+  sentinel-net:
+    driver: bridge
