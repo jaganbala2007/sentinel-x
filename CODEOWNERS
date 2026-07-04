@@ -1,0 +1,27 @@
+# CODEOWNERS
+
+# The format is:
+# pattern owner1 owner2
+
+*       @maintainer-placeholder
+
+# Frontend
+/frontend/       @frontend-lead-placeholder
+*.html           @frontend-lead-placeholder
+*.css            @frontend-lead-placeholder
+
+# Backend & Server Scripts
+/backend/        @backend-lead-placeholder
+*.ps1            @backend-lead-placeholder
+*.bat            @backend-lead-placeholder
+
+# AI & Models
+/models/         @ai-lead-placeholder
+/datasets/       @ai-lead-placeholder
+
+# Hardware
+/hardware/       @hardware-lead-placeholder
+/firmware/       @hardware-lead-placeholder
+
+# Docs
+/docs/           @docs-lead-placeholder

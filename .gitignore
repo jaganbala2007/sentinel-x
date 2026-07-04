@@ -1,0 +1,205 @@
+# ============================================================
+# Sentinel-X .gitignore
+# ============================================================
+# Covers: Python, Node, C/C++, Docker, OS, IDE, Large Binaries
+
+# ------------------------------------------------------------
+# Large Binary / Media Files (tracked via Git LFS or excluded)
+# ------------------------------------------------------------
+*.fbx
+*.blend
+*.blend1
+*.dae
+*.obj
+*.glb
+*.gltf
+*.stl
+*.3ds
+*.ply
+*.abc
+*.hdr
+*.exr
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.psd
+*.ai
+
+# Pitch decks / compiled presentations (keep source, not binaries)
+*.pptx
+*.key
+*.ppt
+
+# AI Model weights (too large for git — use Git LFS or DVC)
+*.onnx
+*.pt
+*.pth
+*.pb
+*.tflite
+*.h5
+*.pkl
+*.bin
+*.gguf
+*.safetensors
+
+# ------------------------------------------------------------
+# Python
+# ------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.pyenv/
+.pdm-python
+
+# Distribution / packaging
+dist/
+build/
+eggs/
+*.egg-info/
+*.egg
+MANIFEST
+.eggs/
+pip-wheel-metadata/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Type checkers
+.mypy_cache/
+.pytype/
+.pyre/
+.ruff_cache/
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ------------------------------------------------------------
+# Node.js (if frontend tooling is added)
+# ------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+.npm/
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+.next/
+.nuxt/
+.output/
+.cache/
+
+# ------------------------------------------------------------
+# Docker
+# ------------------------------------------------------------
+.dockerignore
+docker-compose.override.yml
+
+# ------------------------------------------------------------
+# Environment & Secrets (NEVER commit these)
+# ------------------------------------------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging
+*.pem
+*.key
+*.cert
+*.crt
+secrets/
+credentials/
+
+# ------------------------------------------------------------
+# Database
+# ------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.sql
+dump.rdb           # Redis dump
+
+# ------------------------------------------------------------
+# C/C++ Firmware / Edge Code
+# ------------------------------------------------------------
+*.o
+*.a
+*.so
+*.out
+*.elf
+*.hex
+*.bin
+*.map
+*.lst
+*.d
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+build/
+
+# ------------------------------------------------------------
+# OS Metadata
+# ------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ------------------------------------------------------------
+# IDE / Editor
+# ------------------------------------------------------------
+.idea/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+*~
+
+# ------------------------------------------------------------
+# Logs & Diagnostics
+# ------------------------------------------------------------
+logs/
+*.log
+*.log.*
+log/
+npm-debug.log
