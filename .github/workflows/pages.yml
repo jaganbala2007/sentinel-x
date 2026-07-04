@@ -15,17 +15,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: "🌐 Deploy Frontend to GitHub Pages"
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
+    name: "📦 Build Pages Artifact"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Pages
+        id: pages
         uses: actions/configure-pages@v5
 
       - name: Upload frontend as Pages artifact
@@ -33,6 +31,14 @@ jobs:
         with:
           path: "frontend/src"
 
+  deploy:
+    name: "🌐 Deploy to GitHub Pages"
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
