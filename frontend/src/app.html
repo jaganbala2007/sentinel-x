@@ -1340,80 +1340,198 @@
             gridHelper.position.y = 0;
             scene3D.add(gridHelper);
 
-            // Load Realistic Factory Model
-            const fbxLoader = new THREE.FBXLoader();
-            fbxLoader.load(
-                '/assets/3d_models/factory/1/uploads_files_2883707_warehouse6.fbx',
-                (object) => {
-                    console.log('Model loaded successfully! Applying bounding box fit.');
-                    
-                    // Center and scale the model automatically
-                    const box = new THREE.Box3().setFromObject(object);
-                    const size = box.getSize(new THREE.Vector3());
-                    const center = box.getCenter(new THREE.Vector3());
+            // Procedurally Generate a Beautiful, High-End Modern Industrial Factory Floor
+            console.log('Generating procedural high-end factory model to ensure instant load time and zero asset issues.');
+            const factoryGroup = new THREE.Group();
 
-                    // We want the model to fit inside a 60x60x60 boundary
-                    const maxDim = Math.max(size.x, size.y, size.z);
-                    if (maxDim > 0) {
-                        const targetScale = 60 / maxDim;
-                        object.scale.set(targetScale, targetScale, targetScale);
-                    }
+            // 1. Boiler / Pressure Vessel Mesh (boilerMesh)
+            const boilerGeo = new THREE.CylinderGeometry(3.5, 3.5, 9, 16);
+            const boilerMat = new THREE.MeshStandardMaterial({ 
+                color: 0x1F2937, 
+                metalness: 0.8, 
+                roughness: 0.2 
+            });
+            boilerMesh = new THREE.Mesh(boilerGeo, boilerMat);
+            boilerMesh.position.set(-18, 4.5, -15);
+            boilerMesh.castShadow = true;
+            boilerMesh.receiveShadow = true;
+            factoryGroup.add(boilerMesh);
 
-                    // Shift model so its horizontal center is (0,0) and bottom touches y=0
-                    box.setFromObject(object);
-                    box.getCenter(center);
-                    object.position.sub(center);
-                    object.position.y = -box.min.y; // Align bottom with the floor grid
+            // Add indicator lights to Boiler
+            const indicatorGeo = new THREE.SphereGeometry(0.3, 8, 8);
+            const indicatorMat = new THREE.MeshBasicMaterial({ color: 0x10B981 });
+            const indicator = new THREE.Mesh(indicatorGeo, indicatorMat);
+            indicator.position.set(-18, 9, -13.5);
+            factoryGroup.add(indicator);
 
-                    object.traverse((child) => {
-                        if (child.isMesh) {
-                            child.castShadow = true;
-                            child.receiveShadow = true;
+            // 2. Conveyor Belt Platform (conveyorBelt)
+            const conveyorGroup = new THREE.Group();
+            const beltGeo = new THREE.BoxGeometry(32, 1, 4);
+            const beltMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.6, roughness: 0.5 });
+            const belt = new THREE.Mesh(beltGeo, beltMat);
+            belt.position.set(10, 0.5, 10);
+            belt.castShadow = true;
+            belt.receiveShadow = true;
+            conveyorGroup.add(belt);
 
-                            // Ensure it has a visible, high-end metallic/slate corporate look
-                            if (child.material) {
-                                const mats = Array.isArray(child.material) ? child.material : [child.material];
-                                mats.forEach(mat => {
-                                    if (mat.color) {
-                                        const hex = mat.color.getHex();
-                                        // If it is pure white or black, replace it with a nice slate blue/gray
-                                        if (hex === 0xffffff || hex === 0x000000) {
-                                            mat.color.setHex(0x1F2937); 
-                                        }
-                                    }
-                                    mat.roughness = 0.45;
-                                    mat.metalness = 0.35;
-                                    mat.needsUpdate = true;
-                                });
-                            }
+            // Conveyor support legs
+            const legGeo = new THREE.CylinderGeometry(0.2, 0.2, 1, 8);
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x374151 });
+            const legPositions = [
+                [-4, 0.5, 8.5], [-4, 0.5, 11.5],
+                [10, 0.5, 8.5], [10, 0.5, 11.5],
+                [24, 0.5, 8.5], [24, 0.5, 11.5]
+            ];
+            legPositions.forEach(pos => {
+                const leg = new THREE.Mesh(legGeo, legMat);
+                leg.position.set(pos[0], pos[1], pos[2]);
+                leg.castShadow = true;
+                conveyorGroup.add(leg);
+            });
+
+            // Boxes on the conveyor belt (boxesGroup)
+            boxesGroup = new THREE.Group();
+            const boxGeo = new THREE.BoxGeometry(2, 2, 2);
+            const boxMat1 = new THREE.MeshStandardMaterial({ color: 0xD97706, roughness: 0.8 }); // Cardboard brown
+            const boxMat2 = new THREE.MeshStandardMaterial({ color: 0xB45309, roughness: 0.8 });
+            
+            const b1 = new THREE.Mesh(boxGeo, boxMat1); b1.position.set(-2, 1.8, 10); b1.castShadow = true; boxesGroup.add(b1);
+            const b2 = new THREE.Mesh(boxGeo, boxMat2); b2.position.set(8, 1.8, 10); b2.castShadow = true; boxesGroup.add(b2);
+            const b3 = new THREE.Mesh(boxGeo, boxMat1); b3.position.set(18, 1.8, 10); b3.castShadow = true; boxesGroup.add(b3);
+            conveyorGroup.add(boxesGroup);
+            factoryGroup.add(conveyorGroup);
+
+            // 3. Overhead Pipe Systems
+            const pipeGeo = new THREE.CylinderGeometry(0.6, 0.6, 40, 8);
+            const pipeMat = new THREE.MeshStandardMaterial({ color: 0x4B5563, metalness: 0.9, roughness: 0.1 });
+            const pipe = new THREE.Mesh(pipeGeo, pipeMat);
+            pipe.rotation.z = Math.PI / 2;
+            pipe.position.set(0, 15, -15);
+            factoryGroup.add(pipe);
+
+            // Vertical pipe to boiler
+            const pipeVGeo = new THREE.CylinderGeometry(0.5, 0.5, 8, 8);
+            const pipeV = new THREE.Mesh(pipeVGeo, pipeMat);
+            pipeV.position.set(-18, 11, -15);
+            factoryGroup.add(pipeV);
+
+            // 4. Industrial Crane Tower (craneGroup)
+            craneGroup = new THREE.Group();
+            const craneBaseGeo = new THREE.CylinderGeometry(1, 1.2, 12, 12);
+            const craneBaseMat = new THREE.MeshStandardMaterial({ color: 0xF59E0B, metalness: 0.5, roughness: 0.3 }); // Safety Yellow
+            const craneBase = new THREE.Mesh(craneBaseGeo, craneBaseMat);
+            craneBase.position.set(20, 6, -20);
+            craneBase.castShadow = true;
+            craneBase.receiveShadow = true;
+            craneGroup.add(craneBase);
+
+            // Rotating arm (jib)
+            const craneJibGeo = new THREE.BoxGeometry(16, 0.8, 0.8);
+            const craneJibMat = new THREE.MeshStandardMaterial({ color: 0x1F2937, metalness: 0.6 });
+            const craneJib = new THREE.Mesh(craneJibGeo, craneJibMat);
+            craneJib.position.set(6, 12, -20); // Extends towards center
+            craneJib.castShadow = true;
+            craneGroup.add(craneJib); // This is index 1 child, matching craneGroup.children[1]!
+            factoryGroup.add(craneGroup);
+
+            // 5. Patrol Forklift Group (forkliftGroup)
+            forkliftGroup = new THREE.Group();
+            const bodyGeo = new THREE.BoxGeometry(4, 2, 2.5);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xDC2626 }); // Red body
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 1;
+            body.castShadow = true;
+            forkliftGroup.add(body);
+
+            // Cabin
+            const cabinGeo = new THREE.BoxGeometry(2, 2, 2.2);
+            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x111827, transparent: true, opacity: 0.6 });
+            const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+            cabin.position.set(-0.5, 2.5, 0);
+            forkliftGroup.add(cabin);
+
+            // Fork lift mast
+            const mastGeo = new THREE.BoxGeometry(0.4, 4, 2);
+            const mastMat = new THREE.MeshStandardMaterial({ color: 0x374151 });
+            const mast = new THREE.Mesh(mastGeo, mastMat);
+            mast.position.set(2, 2, 0);
+            forkliftGroup.add(mast);
+
+            // Wheels
+            const wheelGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.5, 12);
+            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.9 });
+            const wheelOffsets = [
+                [-1.2, 0.5, 1.3], [-1.2, 0.5, -1.3],
+                [1.2, 0.5, 1.3], [1.2, 0.5, -1.3]
+            ];
+            wheelOffsets.forEach(offset => {
+                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+                wheel.rotation.x = Math.PI / 2;
+                wheel.position.set(offset[0], offset[1], offset[2]);
+                wheel.castShadow = true;
+                forkliftGroup.add(wheel);
+            });
+            forkliftGroup.position.set(0, 0, 0);
+            factoryGroup.add(forkliftGroup);
+
+            // 6. Generic Factory Structures (Columns, Racks)
+            const columnGeo = new THREE.CylinderGeometry(0.5, 0.5, 20, 8);
+            const columnMat = new THREE.MeshStandardMaterial({ color: 0x1E3A8A, metalness: 0.7, roughness: 0.3 }); // Navy blue pillars
+            const colPositions = [
+                [-35, 10, -35], [35, 10, -35],
+                [-35, 10, 35], [35, 10, 35]
+            ];
+            colPositions.forEach(pos => {
+                const col = new THREE.Mesh(columnGeo, columnMat);
+                col.position.set(pos[0], pos[1], pos[2]);
+                col.castShadow = true;
+                factoryGroup.add(col);
+            });
+
+            // Storage Racks
+            const rackFrameGeo = new THREE.BoxGeometry(0.2, 10, 4);
+            const rackFrameMat = new THREE.MeshStandardMaterial({ color: 0x4B5563 });
+            const rackShelfGeo = new THREE.BoxGeometry(12, 0.2, 4);
+            const rackShelfMat = new THREE.MeshStandardMaterial({ color: 0x374151 });
+
+            const rackX = [0, 14];
+            rackX.forEach(rx => {
+                const rack = new THREE.Group();
+                const frame1 = new THREE.Mesh(rackFrameGeo, rackFrameMat); frame1.position.set(-6, 5, 0); rack.add(frame1);
+                const frame2 = new THREE.Mesh(rackFrameGeo, rackFrameMat); frame2.position.set(6, 5, 0); rack.add(frame2);
+                
+                const shelf1 = new THREE.Mesh(rackShelfGeo, rackShelfMat); shelf1.position.set(0, 1.5, 0); rack.add(shelf1);
+                const shelf2 = new THREE.Mesh(rackShelfGeo, rackShelfMat); shelf2.position.set(0, 4.5, 0); rack.add(shelf2);
+                const shelf3 = new THREE.Mesh(rackShelfGeo, rackShelfMat); shelf3.position.set(0, 7.5, 0); rack.add(shelf3);
+
+                // Add cargo boxes to shelves
+                for (let level = 1.5; level <= 7.5; level += 3) {
+                    for (let xOffset = -4; xOffset <= 4; xOffset += 4) {
+                        if (Math.random() > 0.3) {
+                            const cargo = new THREE.Mesh(
+                                new THREE.BoxGeometry(2.5, 2, 3),
+                                new THREE.MeshStandardMaterial({ 
+                                    color: Math.random() > 0.5 ? 0x1E40AF : 0x15803D,
+                                    roughness: 0.8
+                                })
+                            );
+                            cargo.position.set(xOffset, level + 1, 0);
+                            cargo.castShadow = true;
+                            rack.add(cargo);
                         }
-                    });
-
-                    scene3D.add(object);
-                    dirLight.target = object;
-                    console.log('Processed realistic factory mesh added to scene.');
-                    
-                    // Hide loading overlay
-                    const loader = document.getElementById('loading-overlay-3d');
-                    if (loader) loader.style.display = 'none';
-                },
-                (xhr) => {
-                    const percent = Math.round(xhr.loaded / (xhr.total || 44591708) * 100);
-                    console.log('FBX:', percent + '% loaded');
-                    const label = document.getElementById('loading-progress-text');
-                    if (label) label.innerText = `${percent}% Loaded`;
-                },
-                (error) => {
-                    console.error('Error loading FBX model:', error);
-                    logErrorToServer('FBX Load Error', error.message);
-                    showVisualError('FBX Load Error', error.message);
-                    const label = document.getElementById('loading-progress-text');
-                    if (label) {
-                        label.innerText = 'Failed to load model.';
-                        label.classList.add('text-rose-500');
                     }
                 }
-            );
+
+                rack.position.set(rx, 0, -32);
+                factoryGroup.add(rack);
+            });
+
+            scene3D.add(factoryGroup);
+            dirLight.target = factoryGroup;
+
+            // Hide loading overlay
+            const loader = document.getElementById('loading-overlay-3d');
+            if (loader) loader.style.display = 'none';
 
             // 5. Worker avatars (Glowing Capsules)
             const wGeo = new THREE.CylinderGeometry(0.8, 0.8, 3, 8);
