@@ -1,0 +1,161 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Sentinel-X AI Safety OS API",
+    "description": "Core interface endpoints for retrieving active sensor telemetry, logging alerts, and triggering industrial PLC machine lockouts.",
+    "version": "1.0.4-beta"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000/api/v1",
+      "description": "Local Fog Edge Server"
+    }
+  ],
+  "paths": {
+    "/alerts/active": {
+      "get": {
+        "summary": "Retrieve active alerts",
+        "description": "Returns list of active warnings and critical incident alerts currently monitored by the safety mesh.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Alert"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sensors/telemetry": {
+      "get": {
+        "summary": "Retrieve live sensor telemetry",
+        "description": "Returns active telemetry for CO2, Hydrogen Sulfide, and Boiler temperature indicators.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Telemetry"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/machine/lockout": {
+      "post": {
+        "summary": "Trigger automated machine lockout override",
+        "description": "Dispatches an emergency Modbus lockout signal directly to PLC controllers to isolate machinery.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "machine_id": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": ["machine_id", "reason"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "locked_units": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Alert": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["INFO", "WARNING", "CRITICAL"]
+          },
+          "trigger_source": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          }
+        }
+      },
+      "Telemetry": {
+        "type": "object",
+        "properties": {
+          "nodes_synced": {
+            "type": "integer"
+          },
+          "gas_levels": {
+            "type": "object",
+            "properties": {
+              "co2": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            }
+          },
+          "boiler_b_temperature": {
+            "type": "object",
+            "properties": {
+              "val": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
