@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL-X | AI Cognitive Safety Operating System</title>
+    <meta name="description" content="Sentinel-X is an enterprise-grade AI Cognitive Safety Operating System creating real-time 3D Digital Twins of industrial environments to predict and prevent accidents.">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            black: '#030712',
+                            dark: '#0B0F19',
+                            blue: '#0F52BA',
+                            neonBlue: '#3B82F6',
+                            neonGreen: '#10B981',
+                            neonRed: '#EF4444',
+                            orange: '#F59E0B',
+                            glass: 'rgba(15, 23, 42, 0.45)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #030712;
+            color: #F3F4F6;
+            overflow-x: hidden;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+        /* Glassmorphic Utilities */
+        .glass-card {
+            background: rgba(17, 24, 39, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-card-hover:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+            transform: translateY(-4px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .text-glow {
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        .border-glow {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+        /* Background Canvas */
+        #three-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        /* Keyframe Animations */
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.9; }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 4s infinite;
+        }
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanline::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.35), transparent);
+            animation: scanline 6s linear infinite;
+        }
+    </style>
+</head>
+<body class="selection:bg-blue-600 selection:text-white antialiased">
+
+    <!-- ThreeJS 3D Background Canvas -->
+    <canvas id="three-bg"></canvas>
+
+    <!-- Header Navigation -->
+    <header class="fixed top-0 left-0 w-full z-50 glass-card border-b border-white/5 bg-brand-black/40">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-blue-700 to-cyan-500 flex items-center justify-center border border-white/10 group-hover:scale-105 transition-all duration-300">
+                    <i data-lucide="shield" class="w-5 h-5 text-white animate-pulse"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">SENTINEL-X</span>
+                    <span class="text-[9px] uppercase tracking-[0.25em] text-cyan-400 font-bold">Cognitive Safety OS</span>
+                </div>
+            </a>
+
+            <nav class="hidden md:flex items-center gap-8">
+                <a href="#features" class="text-sm font-medium text-slate-400 hover:text-white transition-colors duration-200">Core Features</a>
+                <a href="#architecture" class="text-sm font-medium text-slate-400 hover:text-white transition-colors duration-200">Architecture</a>
+                <a href="#tech" class="text-sm font-medium text-slate-400 hover:text-white transition-colors duration-200">Technology</a>
+                <a href="#team" class="text-sm font-medium text-slate-400 hover:text-white transition-colors duration-200">The Team</a>
+                <a href="/docs/user_manual.md" class="text-sm font-medium text-slate-400 hover:text-white transition-colors duration-200">Documentation</a>
+            </nav>
+
+            <div class="flex items-center gap-4">
+                <a href="auth.html" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 border border-white/10 flex items-center gap-2">
+                    <span>Enter Console</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center justify-center pt-24 pb-16 px-6 relative">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10 w-full">
+            <div class="lg:col-span-7 flex flex-col items-start text-left space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-semibold text-blue-400 uppercase tracking-widest">
+                    <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                    Now Deploying to Enterprise Partners
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-none text-white">
+                    Predict Safety.<br>
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-indigo-400">Prevent Incidents.</span>
+                </h1>
+                <p class="text-lg md:text-xl text-slate-400 font-light max-w-xl leading-relaxed">
+                    Sentinel-X is a cognitive industrial operating system that generates a real-time 3D Digital Twin of your facility, tracking workers, equipment, and environment to prevent accidents before they occur.
+                </p>
+                <div class="flex flex-wrap gap-4 pt-4">
+                    <a href="auth.html" class="px-8 py-4 rounded-xl text-base font-bold text-white bg-blue-600 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 border border-white/10 flex items-center gap-3">
+                        <i data-lucide="play" class="w-5 h-5"></i>
+                        <span>Launch Cockpit Dashboard</span>
+                    </a>
+                    <a href="#features" class="px-8 py-4 rounded-xl text-base font-bold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/15 transition-all duration-300 flex items-center gap-3">
+                        <span>Explore Capabilities</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Dashboard Mini-Mockup Card -->
+            <div class="lg:col-span-5 w-full glass-card border border-white/10 rounded-2xl p-6 relative overflow-hidden scanline shadow-2xl">
+                <div class="flex items-center justify-between pb-4 border-b border-white/5">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                        <span class="text-xs font-mono text-slate-400 ml-2">sentinel-x://live-risk-field</span>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest animate-pulse">Mesh Active</span>
+                </div>
+                
+                <div class="py-6 space-y-4">
+                    <!-- Stat row -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-brand-black/40 rounded-xl p-4 border border-white/5">
+                            <span class="text-xs text-slate-400">Mesh AI health</span>
+                            <div class="text-2xl font-bold text-white mt-1">98.4%</div>
+                        </div>
+                        <div class="bg-brand-black/40 rounded-xl p-4 border border-white/5">
+                            <span class="text-xs text-slate-400">Risk Level</span>
+                            <div class="text-2xl font-bold text-emerald-400 mt-1">Nominal</div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Alert Demo Box -->
+                    <div class="bg-blue-500/5 rounded-xl p-4 border border-blue-500/10 flex items-start gap-4">
+                        <div class="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                            <i data-lucide="eye" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold text-white">Zone B Restricted Access</div>
+                            <p class="text-xs text-slate-400 mt-1">Vision AI confirms worker entering hazardous compressor zone with certified PPE.</p>
+                            <span class="inline-block text-[10px] text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded mt-2 font-mono">15:43:09 - Approved</span>
+                        </div>
+                    </div>
+
+                    <!-- Sensor stream simulator -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+                            <span>CO2 Sensor #24</span>
+                            <span class="text-emerald-400">380 ppm (Normal)</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div class="w-[38%] h-full bg-emerald-500"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Subtle Bottom Arrow -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-400 animate-bounce cursor-pointer z-10" onclick="document.querySelector('#stats').scrollIntoView({ behavior: 'smooth' })">
+            <span class="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500">Telemetry Feed</span>
+            <i data-lucide="chevron-down" class="w-5 h-5 text-slate-500"></i>
+        </div>
+    </section>
+
+    <!-- Platform Stats Ticker Section -->
+    <section id="stats" class="py-12 glass-card border-y border-white/5 bg-brand-black/60 relative z-10">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div class="space-y-1">
+                <span class="text-xs uppercase font-bold tracking-widest text-slate-500">Active Monitored Sites</span>
+                <p class="text-3xl md:text-4xl font-extrabold text-white">42</p>
+            </div>
+            <div class="space-y-1">
+                <span class="text-xs uppercase font-bold tracking-widest text-slate-500">Tracked Wearables</span>
+                <p class="text-3xl md:text-4xl font-extrabold text-blue-400">12,840</p>
+            </div>
+            <div class="space-y-1">
+                <span class="text-xs uppercase font-bold tracking-widest text-slate-500">Accidents Prevented</span>
+                <p class="text-3xl md:text-4xl font-extrabold text-emerald-400">1,942</p>
+            </div>
+            <div class="space-y-1">
+                <span class="text-xs uppercase font-bold tracking-widest text-slate-500">Inference Latency</span>
+                <p class="text-3xl md:text-4xl font-extrabold text-cyan-400">&lt; 90ms</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Features Section -->
+    <section id="features" class="py-24 px-6 relative z-10 max-w-7xl mx-auto">
+        <div class="text-center max-w-3xl mx-auto space-y-4 mb-20">
+            <span class="text-xs uppercase tracking-[0.3em] font-bold text-blue-400">Safety Innovation</span>
+            <h2 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight">Enterprise Safety Infrastructure</h2>
+            <p class="text-slate-400 leading-relaxed font-light">
+                Sentinel-X replaces reactive alarms with real-time multi-agent AI cooperation, utilizing three core proprietary mechanisms.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Digital DNA -->
+            <div class="glass-card glass-card-hover rounded-2xl p-8 space-y-6">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
+                    <i data-lucide="fingerprint" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white">Digital DNA Profile</h3>
+                <p class="text-slate-400 leading-relaxed font-light text-sm">
+                    Each worker is assigned a unique digital safety profile mapping biometric vitals, fatigue indicators, certifications, and real-time stress levels, continuously updating to predict cognitive fatigue and stress.
+                </p>
+            </div>
+
+            <!-- Dynamic Risk Field -->
+            <div class="glass-card glass-card-hover rounded-2xl p-8 space-y-6">
+                <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20">
+                    <i data-lucide="activity" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white">Dynamic Risk Field</h3>
+                <p class="text-slate-400 leading-relaxed font-light text-sm">
+                    Fuses physical telemetry, weather, gas concentrations, and machine state to render a real-time hazard grid overlay, predicting zone failure vectors up to 15 minutes before they occur.
+                </p>
+            </div>
+
+            <!-- Multi-Agent AI -->
+            <div class="glass-card glass-card-hover rounded-2xl p-8 space-y-6">
+                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                    <i data-lucide="cpu" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white">Multi-Agent AI Mesh</h3>
+                <p class="text-slate-400 leading-relaxed font-light text-sm">
+                    Vision, Prediction, Route Planning, and Emergency agents collaborate on local nodes via a shared cognitive mesh, making instant shutdown decisions and coordinate response protocols with sub-100ms latency.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="py-24 px-6 relative z-10 bg-brand-dark/40 border-y border-white/5">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-20">
+                <span class="text-xs uppercase tracking-[0.3em] font-bold text-cyan-400">The Sentinel Mesh</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight">System Architecture Layers</h2>
+                <p class="text-slate-400 leading-relaxed font-light">
+                    Built to operate reliably in high-density factories, Sentinel-X runs on a resilient Edge-Fog-Cloud framework.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Edge -->
+                <div class="glass-card rounded-2xl p-8 border-l-4 border-l-rose-500 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs uppercase tracking-widest font-mono text-rose-500 font-bold">Physical layer</span>
+                        <span class="text-xs font-mono bg-white/5 text-slate-300 px-2 py-0.5 rounded">Sensors</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white">Edge Sensing</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Ruggedized IoT sensor nodes, gas detectors, LoRaWAN environmental sensors, LiDAR arrays, and smart worker wearables (smart helmets, vests, watches) capturing raw high-velocity data.
+                    </p>
+                </div>
+
+                <!-- Fog -->
+                <div class="glass-card rounded-2xl p-8 border-l-4 border-l-yellow-500 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs uppercase tracking-widest font-mono text-yellow-500 font-bold">Inference layer</span>
+                        <span class="text-xs font-mono bg-white/5 text-slate-300 px-2 py-0.5 rounded">Local Server</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white">Fog Processing</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Local rugged edge servers (NVIDIA Jetson, Intel OpenVINO gateways) running YOLOv11 and custom pose-estimation models locally. Guarantees safety overrides function even during total cloud disconnect.
+                    </p>
+                </div>
+
+                <!-- Cloud -->
+                <div class="glass-card rounded-2xl p-8 border-l-4 border-l-blue-500 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs uppercase tracking-widest font-mono text-blue-500 font-bold">Orchestration layer</span>
+                        <span class="text-xs font-mono bg-white/5 text-slate-300 px-2 py-0.5 rounded">GCP Cloud</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white">Cloud Orchestration</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Centralized data analytics, AI agent synchronization, long-term training, Digital Twin coordination, compliance reporting, and the main supervisor cockpit control room.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology & Team Section -->
+    <section id="tech" class="py-24 px-6 relative z-10 max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+            
+            <!-- Tech List -->
+            <div class="lg:col-span-6 space-y-6">
+                <span class="text-xs uppercase tracking-[0.3em] font-bold text-blue-400">Industrial Tech Stack</span>
+                <h3 class="text-4xl font-extrabold text-white">Standard & Enterprise Technologies</h3>
+                <p class="text-slate-400 text-sm leading-relaxed max-w-md">
+                    Sentinel-X is built upon production-ready protocols, certified by global safety and technical organizations.
+                </p>
+                <div class="grid grid-cols-2 gap-4 pt-4">
+                    <div class="flex items-center gap-3 text-slate-300">
+                        <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                        <span class="text-sm font-mono">Three.js / WebGL</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-slate-300">
+                        <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                        <span class="text-sm font-mono">YOLOv11 & OpenCV</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-slate-300">
+                        <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                        <span class="text-sm font-mono">FastAPI / Python</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-slate-300">
+                        <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                        <span class="text-sm font-mono">MQTT / WebSockets</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-slate-300">
+                        <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                        <span class="text-sm font-mono">Docker / K8s</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-slate-300">
+                        <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                        <span class="text-sm font-mono">Google Vertex AI</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team List -->
+            <div id="team" class="lg:col-span-6 space-y-8">
+                <span class="text-xs uppercase tracking-[0.3em] font-bold text-cyan-400">The Board</span>
+                <h3 class="text-4xl font-extrabold text-white">Project Experts</h3>
+                
+                <div class="space-y-4">
+                    <!-- Core 3 team members based on pitch deck slide 18 -->
+                    <div class="glass-card rounded-xl p-4 flex gap-4 items-center">
+                        <div class="w-12 h-12 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-lg">AI</div>
+                        <div>
+                            <div class="font-bold text-white text-base">Dr. Sarah Connor</div>
+                            <div class="text-xs text-slate-400">AI Lead — Multi-agent model designer</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-4 flex gap-4 items-center">
+                        <div class="w-12 h-12 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold text-lg">SE</div>
+                        <div>
+                            <div class="font-bold text-white text-base">Marcus Vance</div>
+                            <div class="text-xs text-slate-400">Industrial Safety Expert — Safety regulatory lead</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-4 flex gap-4 items-center">
+                        <div class="w-12 h-12 rounded-lg bg-cyan-600/20 text-cyan-400 flex items-center justify-center font-bold text-lg">SA</div>
+                        <div>
+                            <div class="font-bold text-white text-base">Kenji Tanaka</div>
+                            <div class="text-xs text-slate-400">Systems Architect — Digital Twin & Edge engineering</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Call To Action -->
+    <section class="py-24 px-6 relative z-10 max-w-5xl mx-auto text-center">
+        <div class="glass-card rounded-3xl p-12 md:p-20 relative overflow-hidden shadow-2xl space-y-8">
+            <div class="absolute -top-16 -left-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-16 -right-16 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
+            
+            <h2 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight max-w-2xl mx-auto leading-tight">
+                Secure Your Industrial Workplace Today
+            </h2>
+            <p class="text-slate-400 font-light max-w-xl mx-auto leading-relaxed text-sm md:text-base">
+                Anticipate accidents, protect your workforce, and achieve compliance using Sentinel-X's cognitive operating system.
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 pt-4">
+                <a href="auth.html" class="px-8 py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 border border-white/10 flex items-center gap-2">
+                    <span>Access Operator Console</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/5 bg-brand-black/80 relative z-10">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-700 flex items-center justify-center border border-white/10">
+                    <i data-lucide="shield" class="w-4 h-4 text-white"></i>
+                </div>
+                <span class="text-base font-bold text-white tracking-wide">SENTINEL-X</span>
+            </div>
+            <div class="flex flex-wrap justify-center gap-8 text-xs text-slate-500">
+                <span>OSHA Certified Safety Standard</span>
+                <span>ISO 45001:2018 Compliant</span>
+                <span>© 2026 Sentinel-X. All rights reserved.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ThreeJS Animation Logic -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Three.js Background Particle Setup
+        const canvas = document.getElementById('three-bg');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const scene = new THREE.Scene();
+
+        // Camera
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.z = 30;
+
+        // Particle Geometry
+        const particlesCount = 200;
+        const positions = new Float32Array(particlesCount * 3);
+        const velocities = [];
+
+        for (let i = 0; i < particlesCount * 3; i += 3) {
+            // Coordinate range
+            positions[i] = (Math.random() - 0.5) * 50;     // X
+            positions[i + 1] = (Math.random() - 0.5) * 50; // Y
+            positions[i + 2] = (Math.random() - 0.5) * 40; // Z
+
+            velocities.push({
+                x: (Math.random() - 0.5) * 0.02,
+                y: (Math.random() - 0.5) * 0.02,
+                z: (Math.random() - 0.5) * 0.02
+            });
+        }
+
+        const particleGeometry = new THREE.BufferGeometry();
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        // Particle Material (Glowing Circles)
+        // Creating a canvas-drawn glow texture for particles
+        const pCanvas = document.createElement('canvas');
+        pCanvas.width = 16;
+        pCanvas.height = 16;
+        const pCtx = pCanvas.getContext('2d');
+        const grad = pCtx.createRadialGradient(8, 8, 0, 8, 8, 8);
+        grad.addColorStop(0, 'rgba(59, 130, 246, 1)');
+        grad.addColorStop(0.3, 'rgba(59, 130, 246, 0.8)');
+        grad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        pCtx.fillStyle = grad;
+        pCtx.fillRect(0, 0, 16, 16);
+
+        const texture = new THREE.CanvasTexture(pCanvas);
+
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.8,
+            map: texture,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const particlePoints = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particlePoints);
+
+        // Grid overlay
+        const gridHelper = new THREE.GridHelper(80, 40, 0x1E3A8A, 0x0F172A);
+        gridHelper.position.y = -15;
+        scene.add(gridHelper);
+
+        // Interaction
+        let mouseX = 0;
+        let mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 3;
+            mouseY = -(e.clientY / window.innerHeight - 0.5) * 3;
+        });
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation Loop
+        const clock = new THREE.Clock();
+        const animate = () => {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = clock.getElapsedTime();
+
+            // Rotate points slightly
+            particlePoints.rotation.y = elapsedTime * 0.03;
+            particlePoints.rotation.x = elapsedTime * 0.015;
+
+            // Move particles based on velocity
+            const posAttr = particleGeometry.getAttribute('position');
+            const arr = posAttr.array;
+
+            for (let i = 0; i < particlesCount; i++) {
+                const idx = i * 3;
+                arr[idx] += velocities[i].x;
+                arr[idx + 1] += velocities[i].y;
+                arr[idx + 2] += velocities[i].z;
+
+                // Boundaries
+                if (Math.abs(arr[idx]) > 30) velocities[i].x *= -1;
+                if (Math.abs(arr[idx + 1]) > 30) velocities[i].y *= -1;
+                if (Math.abs(arr[idx + 2]) > 30) velocities[i].z *= -1;
+            }
+            posAttr.needsUpdate = true;
+
+            // Track camera to mouse
+            camera.position.x += (mouseX - camera.position.x) * 0.05;
+            camera.position.y += (mouseY - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        };
+
+        animate();
+    </script>
+</body>
+</html>

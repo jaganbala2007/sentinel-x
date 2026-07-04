@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL-X | Enterprise Cockpit Dashboard</title>
+    <script>
+        // Global Error Log to Server & Visual Banner
+        function logErrorToServer(type, msg, details) {
+            console.error('Logging to server:', type, msg, details);
+            fetch('/api/log-error', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: type, message: msg, details: details || '', url: window.location.href })
+            }).catch(err => console.error('Failed to log to server:', err));
+        }
+
+        function showVisualError(title, html) {
+            const errDiv = document.createElement('div');
+            errDiv.style.position = 'fixed';
+            errDiv.style.bottom = '20px';
+            errDiv.style.right = '20px';
+            errDiv.style.background = 'rgba(239, 68, 68, 0.95)';
+            errDiv.style.color = '#ffffff';
+            errDiv.style.padding = '16px';
+            errDiv.style.borderRadius = '8px';
+            errDiv.style.zIndex = '99999';
+            errDiv.style.fontSize = '12px';
+            errDiv.style.fontFamily = 'monospace';
+            errDiv.style.maxWidth = '400px';
+            errDiv.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.5)';
+            errDiv.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+            errDiv.innerHTML = `<strong>${title}:</strong> ${html}`;
+            
+            const interval = setInterval(() => {
+                if (document.body) {
+                    document.body.appendChild(errDiv);
+                    clearInterval(interval);
+                }
+            }, 100);
+        }
+
+        // Catch loading errors (use capture: true)
+        window.addEventListener('error', function(e) {
+            const target = e.target;
+            if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
+                const url = target.src || target.href;
+                logErrorToServer('Resource Load Error', `Failed to load: ${url}`, target.outerHTML);
+                showVisualError('Resource Load Error', `Failed to load resource: <br><small class="text-slate-300">${url}</small>`);
+            } else {
+                logErrorToServer('Global JS Error', e.message, `File: ${e.filename}:${e.lineno}:${e.colno}`);
+                showVisualError('JS Error', `${e.message}<br><small class="text-slate-300">File: ${e.filename ? e.filename.split('/').pop() : 'inline'}:${e.lineno}</small>`);
+            }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(e) {
+            const reasonStr = e.reason ? (e.reason.message || String(e.reason)) : 'Unknown rejection';
+            const stack = e.reason ? (e.reason.stack || '') : '';
+            logErrorToServer('Unhandled Promise Rejection', reasonStr, stack);
+            showVisualError('Promise Reject', reasonStr);
+        });
+    </script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            black: '#030712',
+                            dark: '#080C14',
+                            card: '#0E131F',
+                            blue: '#0F52BA',
+                            neonBlue: '#3B82F6',
+                            neonGreen: '#10B981',
+                            neonRed: '#EF4444',
+                            orange: '#F59E0B',
+                            glass: 'rgba(14, 19, 31, 0.65)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts, Lucide Icons, ChartJS & ThreeJS -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/fflate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #030712;
+            color: #F3F4F6;
+            overflow: hidden;
+        }
+        /* Glass styling */
+        .glass-panel {
+            background: rgba(14, 19, 31, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .active-tab {
+            background: rgba(59, 130, 246, 0.15);
+            border-left: 3px solid #3B82F6;
+            color: #ffffff;
+        }
+        /* Custom scroll */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(14, 19, 31, 0.3);
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+        /* Pulsing indicator */
+        .pulse-ring {
+            position: relative;
+        }
+        .pulse-ring::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            animation: pulse-grow 2s infinite;
+        }
+        @keyframes pulse-grow {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col select-none antialiased bg-brand-dark">
+
+    <!-- Top Header -->
+    <header class="h-16 border-b border-white/5 glass-panel flex items-center justify-between px-6 z-30 shrink-0">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-700 to-cyan-500 flex items-center justify-center border border-white/10">
+                <i data-lucide="shield" class="w-4 h-4 text-white"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-base font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">SENTINEL-X COCKPIT</span>
+                <span class="text-[8px] uppercase tracking-[0.2em] text-cyan-400 font-bold" id="location-indicator">Factory 01 - Main Assembly Floor</span>
+            </div>
+        </div>
+
+        <!-- Global KPIs Header Bar -->
+        <div class="hidden lg:flex items-center gap-8">
+            <div class="flex items-center gap-2.5">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">AI Health</span>
+                <span class="text-sm font-bold text-emerald-400" id="header-ai-health">98.4%</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            </div>
+            <div class="w-px h-6 bg-white/5"></div>
+            <div class="flex items-center gap-2.5">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Safety Index</span>
+                <span class="text-sm font-bold text-white" id="header-safety-score">99.2%</span>
+                <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">OSHA OK</span>
+            </div>
+            <div class="w-px h-6 bg-white/5"></div>
+            <div class="flex items-center gap-2.5">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Alerts (24h)</span>
+                <span class="text-sm font-bold text-slate-300" id="header-alerts-count">4</span>
+                <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-500/10 text-slate-400 border border-slate-500/20" id="header-active-alerts">0 Active</span>
+            </div>
+        </div>
+
+        <!-- Right Profile & Alarm Status -->
+        <div class="flex items-center gap-4">
+            <!-- Global Siren Button -->
+            <button onclick="toggleGlobalSiren()" id="siren-btn" class="w-10 h-10 rounded-lg border border-white/5 bg-white/5 text-slate-400 hover:bg-rose-950/30 hover:border-rose-500/30 hover:text-rose-400 flex items-center justify-center transition-all cursor-pointer relative">
+                <i data-lucide="alarm-smoke" class="w-5 h-5"></i>
+            </button>
+
+            <!-- User Panel -->
+            <div class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5">
+                <div class="w-6.5 h-6.5 rounded bg-blue-600 flex items-center justify-center text-xs font-bold text-white uppercase" id="avatar-letters">A</div>
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-white leading-none" id="avatar-name">Administrator</span>
+                    <span class="text-[9px] text-slate-400 uppercase tracking-widest leading-none mt-1" id="avatar-role">Admin</span>
+                </div>
+                <button onclick="handleLogout()" class="text-slate-400 hover:text-white ml-1">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                </button>
+            </div>
+
+            <!-- Current Time -->
+            <div class="text-right font-mono hidden sm:block">
+                <div class="text-xs text-white" id="header-clock">15:43:09</div>
+                <div class="text-[8px] text-slate-400 uppercase font-bold tracking-widest mt-0.5">2026-07-01</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- Sidebar Navigation -->
+        <nav class="w-64 border-r border-white/5 glass-panel flex flex-col justify-between z-20 shrink-0">
+            <!-- Menu Options -->
+            <div class="pt-6 space-y-1">
+                <div class="px-6 pb-2 text-[10px] uppercase font-bold tracking-[0.2em] text-slate-500">OPERATIONAL STATUS</div>
+                
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full px-6 py-3.5 flex items-center gap-3 text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold active-tab">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Control Dashboard</span>
+                </button>
+
+                <button onclick="switchTab('digital-twin')" id="nav-digital-twin" class="w-full px-6 py-3.5 flex items-center gap-3 text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i data-lucide="box" class="w-4 h-4 text-cyan-400"></i>
+                    <span>3D Digital Twin</span>
+                    <span class="px-1.5 py-0.2 bg-cyan-500/10 text-cyan-400 text-[8px] font-bold rounded border border-cyan-500/20 uppercase tracking-widest ml-auto">Twin</span>
+                </button>
+
+                <button onclick="switchTab('cv-feeds')" id="nav-cv-feeds" class="w-full px-6 py-3.5 flex items-center gap-3 text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i data-lucide="video" class="w-4 h-4 text-rose-400"></i>
+                    <span>Computer Vision</span>
+                    <span class="px-1.5 py-0.2 bg-rose-500/10 text-rose-400 text-[8px] font-bold rounded border border-rose-500/20 uppercase tracking-widest ml-auto">YOLO</span>
+                </button>
+
+                <button onclick="switchTab('ai-agents')" id="nav-ai-agents" class="w-full px-6 py-3.5 flex items-center gap-3 text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i data-lucide="brain" class="w-4 h-4 text-indigo-400"></i>
+                    <span>AI Agent Mesh</span>
+                </button>
+
+                <div class="px-6 pt-4 pb-2 text-[10px] uppercase font-bold tracking-[0.2em] text-slate-500">ANALYTICS & DEV</div>
+
+                <button onclick="switchTab('analytics')" id="nav-analytics" class="w-full px-6 py-3.5 flex items-center gap-3 text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i data-lucide="area-chart" class="w-4 h-4 text-yellow-400"></i>
+                    <span>Safety Analytics</span>
+                </button>
+
+                <button onclick="switchTab('wearable')" id="nav-wearable" class="w-full px-6 py-3.5 flex items-center gap-3 text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i data-lucide="watch" class="w-4 h-4 text-orange-400"></i>
+                    <span>Wearable / Watch</span>
+                </button>
+
+                <button onclick="switchTab('swagger-api')" id="nav-swagger-api" class="w-full px-6 py-3.5 flex items-center gap-3 text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold font-mono">
+                    <i data-lucide="code-xml" class="w-4 h-4 text-slate-400"></i>
+                    <span>OpenAPI / Swagger</span>
+                </button>
+
+                <button onclick="switchTab('settings')" id="nav-settings" class="w-full px-6 py-3.5 flex items-center gap-3 text-slate-400 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold">
+                    <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
+                    <span>System Settings</span>
+                </button>
+            </div>
+
+            <!-- Bottom Brand Info -->
+            <div class="p-6 border-t border-white/5 space-y-2 bg-white/2">
+                <div class="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Sentinel Mesh Status</div>
+                <div class="flex items-center gap-2 text-xs font-semibold text-emerald-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>1,024 Edge Nodes OK</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-hidden relative flex flex-col bg-brand-dark">
+
+            <!-- Panel 1: Dashboard Tab -->
+            <div id="tab-dashboard" class="tab-content h-full w-full overflow-y-auto p-6 space-y-6 custom-scroll">
+                <!-- Welcome Banner -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-white">Safety Operating System Dashboard</h2>
+                        <p class="text-xs text-slate-400 mt-1">Real-time sensor streams and automated predictive hazard analytics.</p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white/5 border border-white/5 px-4 py-2 rounded-xl text-xs text-slate-300">
+                        <i data-lucide="calendar" class="w-4 h-4 text-blue-400"></i>
+                        <span>Date: 2026-07-01</span>
+                    </div>
+                </div>
+
+                <!-- KPI Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- KPI 1 -->
+                    <div class="glass-panel rounded-2xl p-5 space-y-3 relative overflow-hidden">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-500/5 rounded-full blur-xl"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Workers</span>
+                            <div class="w-8 h-8 rounded bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                                <i data-lucide="users" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <div class="text-3xl font-extrabold text-white">42</div>
+                            <span class="text-xs text-emerald-400 font-bold flex items-center"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i>100% Tracking</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2 -->
+                    <div class="glass-panel rounded-2xl p-5 space-y-3 relative overflow-hidden">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-cyan-500/5 rounded-full blur-xl"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Gas Sensors</span>
+                            <div class="w-8 h-8 rounded bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                                <i data-lucide="fuel" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <div class="text-3xl font-extrabold text-white">128</div>
+                            <span class="text-xs text-slate-400 font-semibold font-mono">100% Normal</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3 -->
+                    <div class="glass-panel rounded-2xl p-5 space-y-3 relative overflow-hidden">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Machinery Vitals</span>
+                            <div class="w-8 h-8 rounded bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                                <i data-lucide="settings" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <div class="text-3xl font-extrabold text-white">32/32</div>
+                            <span class="text-xs text-emerald-400 font-bold">Nominal</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 4 -->
+                    <div class="glass-panel rounded-2xl p-5 space-y-3 relative overflow-hidden">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-orange-500/5 rounded-full blur-xl"></div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Accident Predictions</span>
+                            <div class="w-8 h-8 rounded bg-orange-500/10 text-orange-400 flex items-center justify-center">
+                                <i data-lucide="brain-circuit" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <div class="text-3xl font-extrabold text-white">0</div>
+                            <span class="text-xs text-emerald-400 font-bold">0.0% Risk Score</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Layout Grid: 2D Floor Layout Map & Live Feed Alerts -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left: 2D Floor Map Grid -->
+                    <div class="lg:col-span-8 glass-panel rounded-2xl p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="map" class="w-5 h-5 text-blue-400"></i>
+                                <h3 class="text-lg font-bold text-white">2D Spatial Tracking (UWB Mesh)</h3>
+                            </div>
+                            <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400 font-mono">Grid Resolution: 0.5m</span>
+                        </div>
+                        <!-- Canvas representing the grid map -->
+                        <div class="w-full h-80 bg-brand-black/50 border border-white/5 rounded-xl overflow-hidden relative">
+                            <canvas id="floor-map-canvas" class="w-full h-full"></canvas>
+                        </div>
+                        <div class="flex flex-wrap gap-4 text-xs font-mono text-slate-400 justify-center">
+                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span>Worker Node</span></div>
+                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span><span>Forklift Path</span></div>
+                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded bg-rose-500/20 border border-rose-500/40"></span><span>Restricted Zone A</span></div>
+                            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded bg-yellow-500/20 border border-yellow-500/40"></span><span>Safety Exit Routes</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Alert Logs -->
+                    <div class="lg:col-span-4 glass-panel rounded-2xl p-6 flex flex-col h-[440px]">
+                        <div class="flex items-center justify-between pb-4 border-b border-white/5">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="bell-ring" class="w-5 h-5 text-rose-400"></i>
+                                <h3 class="text-lg font-bold text-white">Alert Activity Stream</h3>
+                            </div>
+                            <button onclick="clearAlerts()" class="text-xs text-slate-500 hover:text-white transition-colors">Clear</button>
+                        </div>
+
+                        <!-- Live Feed Scroll box -->
+                        <div class="flex-1 overflow-y-auto pt-4 space-y-3 custom-scroll" id="alert-logs-container">
+                            <!-- Populated dynamically, initial seed -->
+                            <div class="bg-blue-500/5 rounded-xl p-3 border border-blue-500/10 flex items-start gap-3">
+                                <div class="w-2 h-2 rounded-full bg-blue-400 mt-1.5 shrink-0"></div>
+                                <div class="flex-1">
+                                    <div class="text-xs font-bold text-white flex justify-between">
+                                        <span>System Initialized</span>
+                                        <span class="text-[10px] font-mono text-slate-500">15:33:54</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Sentinel-X Cognitive mesh initialized. Edge servers synced.</p>
+                                </div>
+                            </div>
+                            <div class="bg-emerald-500/5 rounded-xl p-3 border border-emerald-500/10 flex items-start gap-3">
+                                <div class="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+                                <div class="flex-1">
+                                    <div class="text-xs font-bold text-white flex justify-between">
+                                        <span>Cognitive State Nominal</span>
+                                        <span class="text-[10px] font-mono text-slate-500">15:34:10</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Worker DNA safety loops registered. Helmet checks OK.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 2: 3D Digital Twin Tab -->
+            <div id="tab-digital-twin" class="tab-content h-full w-full hidden relative">
+                <!-- ThreeJS Canvas -->
+                <div id="canvas-container-3d" class="w-full h-full relative">
+                    <!-- Loading Overlay -->
+                    <div id="loading-overlay-3d" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-brand-dark bg-opacity-90">
+                        <div class="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
+                        <div class="text-sm font-bold text-white uppercase tracking-widest mb-1">Loading 3D Digital Twin</div>
+                        <div id="loading-progress-text" class="text-xs font-mono text-cyan-400">0% Loaded</div>
+                    </div>
+                </div>
+
+                <!-- Floating Control Panel overlay -->
+                <div class="absolute top-6 left-6 w-80 glass-panel border border-white/10 rounded-2xl p-5 space-y-4 pointer-events-auto">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                            <span class="text-xs uppercase tracking-wider font-bold text-slate-300">Digital Twin Engine</span>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-400">v2.1</span>
+                    </div>
+
+                    <!-- Simulation Triggers -->
+                    <div class="space-y-2">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500">Trigger Simulations</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="triggerSimulation('gas-leak')" id="btn-sim-gas" class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-bold hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all flex items-center gap-1.5 justify-center">
+                                <i data-lucide="fuel" class="w-3.5 h-3.5"></i>
+                                <span>Gas Leak</span>
+                            </button>
+                            <button onclick="triggerSimulation('boiler-fire')" id="btn-sim-fire" class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-bold hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-400 transition-all flex items-center gap-1.5 justify-center">
+                                <i data-lucide="flame" class="w-3.5 h-3.5"></i>
+                                <span>Boiler Fire</span>
+                            </button>
+                            <button onclick="triggerSimulation('evacuation')" id="btn-sim-evac" class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-bold hover:border-yellow-500/30 hover:bg-yellow-500/10 hover:text-yellow-400 transition-all flex items-center gap-1.5 justify-center">
+                                <i data-lucide="door-open" class="w-3.5 h-3.5"></i>
+                                <span>Evac Route</span>
+                            </button>
+                            <button onclick="resetSimulation()" class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 text-xs font-bold hover:text-white transition-all flex items-center gap-1.5 justify-center">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                                <span>Reset Scene</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lighting / Weather Controls -->
+                    <div class="space-y-2">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500">Lighting & Atmosphere</span>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setLighting('sunny')" class="px-2.5 py-1.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[10px] font-bold border border-white/5 transition-all text-center">Sunny</button>
+                            <button onclick="setLighting('night')" class="px-2.5 py-1.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[10px] font-bold border border-white/5 transition-all text-center">Night</button>
+                            <button onclick="setLighting('storm')" class="px-2.5 py-1.5 rounded bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[10px] font-bold border border-white/5 transition-all text-center">Stormy</button>
+                        </div>
+                    </div>
+
+                    <!-- Camera presets -->
+                    <div class="space-y-2">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500">Camera Focus</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="focusCamera('boiler')" class="px-2 py-1 bg-white/5 text-[10px] font-bold border border-white/5 rounded text-slate-300 hover:text-white hover:bg-white/10">Boiler Area</button>
+                            <button onclick="focusCamera('conveyor')" class="px-2 py-1 bg-white/5 text-[10px] font-bold border border-white/5 rounded text-slate-300 hover:text-white hover:bg-white/10">Conveyor Line</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Playback timeline scrubber at the bottom -->
+                <div class="absolute bottom-6 left-6 right-6 glass-panel border border-white/10 rounded-2xl p-4 flex flex-col gap-2.5 pointer-events-auto">
+                    <div class="flex items-center justify-between text-xs font-mono">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="history" class="w-4 h-4 text-cyan-400"></i>
+                            <span class="font-bold text-white">Time Travel Mode: Scenario Replay</span>
+                        </div>
+                        <span id="time-travel-label" class="text-cyan-400 font-bold">Live Stream Mode</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onclick="togglePlayback()" id="btn-play-pause" class="w-9 h-9 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center border border-white/5 cursor-pointer shrink-0">
+                            <i data-lucide="pause" id="play-pause-icon" class="w-4.5 h-4.5"></i>
+                        </button>
+                        <!-- Timeline Scrubber Slider -->
+                        <input type="range" min="0" max="24" value="24" id="timeline-slider" oninput="handleTimelineScrub(this.value)" class="flex-1 accent-cyan-500 bg-white/10 h-1.5 rounded-lg appearance-none cursor-pointer">
+                        <span class="text-xs font-mono text-slate-400 shrink-0">Historical Log Scale (Hrs)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 3: Computer Vision Tab -->
+            <div id="tab-cv-feeds" class="tab-content h-full w-full hidden overflow-y-auto p-6 space-y-6 custom-scroll">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-white">Vision AI Edge Stream Analyser</h2>
+                    <p class="text-xs text-slate-400 mt-1">Simulating live edge feeds from YOLOv11 detectors monitoring PPE, intrusions, and behaviors.</p>
+                </div>
+
+                <!-- Grid of camera feeds -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- CCTV 01: PPE Check -->
+                    <div class="glass-panel rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center justify-between font-mono text-xs text-slate-300">
+                            <span class="flex items-center gap-1.5 font-bold"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>CCTV_01: GATE PPE GUARD</span>
+                            <span>YOLOv11: PPE-Compliant</span>
+                        </div>
+                        <div class="w-full aspect-video bg-black/50 border border-white/5 rounded-xl overflow-hidden relative">
+                            <canvas id="cv-canvas-01" class="w-full h-full"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- CCTV 02: Restricted Intrusion -->
+                    <div class="glass-panel rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center justify-between font-mono text-xs text-slate-300">
+                            <span class="flex items-center gap-1.5 font-bold"><span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>CCTV_02: COMPRESSOR ZONE</span>
+                            <span class="text-rose-400" id="cctv2-label">YOLOv11: Danger Alarm</span>
+                        </div>
+                        <div class="w-full aspect-video bg-black/50 border border-white/5 rounded-xl overflow-hidden relative">
+                            <canvas id="cv-canvas-02" class="w-full h-full"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- CCTV 03: Conveyor Line -->
+                    <div class="glass-panel rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center justify-between font-mono text-xs text-slate-300">
+                            <span class="flex items-center gap-1.5 font-bold"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>CCTV_03: CONVEYOR vitals</span>
+                            <span>YOLOv11: Belt Active</span>
+                        </div>
+                        <div class="w-full aspect-video bg-black/50 border border-white/5 rounded-xl overflow-hidden relative">
+                            <canvas id="cv-canvas-03" class="w-full h-full"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- CCTV 04: Crowd Density & Falls -->
+                    <div class="glass-panel rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center justify-between font-mono text-xs text-slate-300">
+                            <span class="flex items-center gap-1.5 font-bold"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>CCTV_04: ASSEMBLY floor POSE</span>
+                            <span id="cctv4-label">YOLOv11: Behavior check</span>
+                        </div>
+                        <div class="w-full aspect-video bg-black/50 border border-white/5 rounded-xl overflow-hidden relative">
+                            <canvas id="cv-canvas-04" class="w-full h-full"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 4: AI Agent Mesh Tab -->
+            <div id="tab-ai-agents" class="tab-content h-full w-full hidden flex flex-col p-6 overflow-hidden">
+                <div class="shrink-0 mb-4">
+                    <h2 class="text-3xl font-extrabold text-white">AI Safety Agents Mesh</h2>
+                    <p class="text-xs text-slate-400 mt-1">Inter-agent cooperative mesh communicating via cognitive mesh to orchestrate risk interventions.</p>
+                </div>
+
+                <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden min-h-0">
+                    <!-- Left: Agent Status Mesh -->
+                    <div class="lg:col-span-5 glass-panel rounded-2xl p-5 flex flex-col space-y-4 overflow-y-auto custom-scroll">
+                        <span class="text-xs uppercase font-bold tracking-wider text-slate-500">Mesh Agent Entities</span>
+                        
+                        <div class="space-y-3">
+                            <!-- Agent 1 -->
+                            <div class="p-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-white">Vision AI Agent</div>
+                                        <div class="text-[10px] text-slate-400">CCTV stream annotation & PPE tracking</div>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-bold rounded border border-emerald-500/20 uppercase">Nominal</span>
+                            </div>
+
+                            <!-- Agent 2 -->
+                            <div class="p-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                                        <i data-lucide="brain-circuit" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-white">Prediction AI Agent</div>
+                                        <div class="text-[10px] text-slate-400">Dynamic Risk Field calculation</div>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-bold rounded border border-emerald-500/20 uppercase">Nominal</span>
+                            </div>
+
+                            <!-- Agent 3 -->
+                            <div class="p-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                                        <i data-lucide="milestone" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-white">Route Planner Agent</div>
+                                        <div class="text-[10px] text-slate-400">Pathfinding & evacuation routing</div>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-bold rounded border border-emerald-500/20 uppercase">Nominal</span>
+                            </div>
+
+                            <!-- Agent 4 -->
+                            <div class="p-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded bg-rose-500/10 text-rose-400 flex items-center justify-center">
+                                        <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-white">Emergency Response Agent</div>
+                                        <div class="text-[10px] text-slate-400">Siren control & machine override locks</div>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-bold rounded border border-emerald-500/20 uppercase">Nominal</span>
+                            </div>
+                        </div>
+
+                        <!-- Real-time Agent Coordination Logs -->
+                        <span class="text-xs uppercase font-bold tracking-wider text-slate-500 pt-2">Mesh Chain of Thought</span>
+                        <div class="bg-brand-black/50 border border-white/5 rounded-xl p-3 flex-1 overflow-y-auto custom-scroll font-mono text-[10px] text-slate-400 space-y-2" id="agent-thought-logs">
+                            <div><span class="text-blue-400">[Vision AI]</span> CCTV_01: worker helmet compliance verified.</div>
+                            <div><span class="text-cyan-400">[Predictive AI]</span> calculating dynamic hazard overlays... risk minimal.</div>
+                            <div><span class="text-indigo-400">[Routing AI]</span> checking emergency egress pathways... all routes clear.</div>
+                            <div><span class="text-slate-400">[Cooperation Node]</span> consensus achieved. state locked.</div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Interactive Prompt Chatbot -->
+                    <div class="lg:col-span-7 glass-panel rounded-2xl p-5 flex flex-col overflow-hidden h-full">
+                        <div class="flex items-center gap-2 pb-3 border-b border-white/5">
+                            <i data-lucide="message-square-code" class="w-5 h-5 text-indigo-400"></i>
+                            <span class="text-sm font-bold text-white">Sentinel-X AI Oracle Terminal</span>
+                        </div>
+
+                        <!-- Chat stream -->
+                        <div class="flex-1 overflow-y-auto py-4 space-y-4 custom-scroll" id="chat-messages-container">
+                            <!-- System Greeting -->
+                            <div class="flex items-start gap-3.5 max-w-[85%]">
+                                <div class="w-8 h-8 rounded bg-gradient-to-tr from-blue-700 to-cyan-500 flex items-center justify-center text-white text-xs shrink-0 font-bold">AI</div>
+                                <div class="bg-white/5 border border-white/5 p-3 rounded-xl text-xs text-slate-300">
+                                    Welcome. I am the Sentinel-X Cognitive Assistant. You can ask me questions about safety stats, active risks, or request simulation triggers.<br>
+                                    <div class="mt-2 text-[10px] text-cyan-400 font-mono">
+                                        Type <span class="font-bold">/status</span> to analyze system safety.<br>
+                                        Type <span class="font-bold">/leak</span> to simulate gas leak.<br>
+                                        Type <span class="font-bold">/fire</span> to simulate boiler fire.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat prompt input -->
+                        <form onsubmit="handleChatSubmit(event)" class="pt-3 border-t border-white/5 flex gap-2">
+                            <input type="text" id="chat-prompt-input" placeholder="Type prompt/command..." class="flex-1 bg-brand-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
+                            <button type="submit" class="px-5 py-3 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all border border-white/10 flex items-center gap-2">
+                                <span>Send</span>
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 5: Analytics Tab -->
+            <div id="tab-analytics" class="tab-content h-full w-full hidden overflow-y-auto p-6 space-y-6 custom-scroll">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-white">Industrial Analytics (Grafana Mode)</h2>
+                        <p class="text-xs text-slate-400 mt-1">Vibration telemetry, gas ratios, and machine health curves synced in real-time.</p>
+                    </div>
+                    <!-- Export controls -->
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="exportData('pdf')" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4 text-rose-400"></i>
+                            <span>Export PDF Report</span>
+                        </button>
+                        <button onclick="exportData('xlsx')" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2">
+                            <i data-lucide="table-2" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Export Excel Data</span>
+                        </button>
+                        <button onclick="exportData('csv')" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4 text-cyan-400"></i>
+                            <span>Export CSV Logs</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Charts layout -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Chart 1: Safety Rating -->
+                    <div class="glass-panel rounded-2xl p-5 space-y-3">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Historical Safety Rating (%)</h4>
+                        <div class="h-64 relative">
+                            <canvas id="chart-safety-history"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: CO2/Gas Sensor values -->
+                    <div class="glass-panel rounded-2xl p-5 space-y-3">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Gas Concentration Levels (PPM)</h4>
+                        <div class="h-64 relative">
+                            <canvas id="chart-gas-levels"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 3: Machine vibration -->
+                    <div class="glass-panel rounded-2xl p-5 space-y-3">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Boiler Core Vibration (Hz)</h4>
+                        <div class="h-64 relative">
+                            <canvas id="chart-vibration"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 4: Worker Cognitive Load / Stress -->
+                    <div class="glass-panel rounded-2xl p-5 space-y-3">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Aggregated Worker Stress Index (HRV/SpO2)</h4>
+                        <div class="h-64 relative">
+                            <canvas id="chart-stress"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 6: Wearables / Watch Simulator Tab -->
+            <div id="tab-wearable" class="tab-content h-full w-full hidden overflow-y-auto p-6 space-y-6 custom-scroll">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-white">Wearable Telemetry Cockpit</h2>
+                    <p class="text-xs text-slate-400 mt-1">Inspect individual worker vitals, indoor GPS paths, and simulate worker SOS emergency broadcasts.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start max-w-4xl mx-auto">
+                    <!-- Watch Simulator Device mockup -->
+                    <div class="glass-panel rounded-2xl p-8 flex flex-col items-center space-y-6">
+                        <span class="text-xs uppercase font-bold tracking-wider text-slate-500">WearOS Smartwatch Companion</span>
+                        
+                        <!-- Watch Face Outer Ring -->
+                        <div class="w-64 h-64 rounded-full bg-slate-900 border-4 border-slate-700 flex items-center justify-center p-3 relative shadow-2xl">
+                            <!-- Inner circular screen -->
+                            <div class="w-full h-full rounded-full bg-black border border-cyan-500/20 flex flex-col items-center justify-between py-6 px-4 text-center overflow-hidden">
+                                <div class="text-[9px] uppercase font-bold tracking-widest text-cyan-400">Worker Vitals</div>
+                                
+                                <div class="space-y-1">
+                                    <!-- Heart rate pulsing -->
+                                    <div class="flex items-center gap-1 text-rose-500 justify-center">
+                                        <i data-lucide="heart" class="w-4 h-4 animate-pulse"></i>
+                                        <span class="text-2xl font-extrabold font-mono" id="watch-hr">78</span>
+                                        <span class="text-[9px] uppercase">bpm</span>
+                                    </div>
+                                    <div class="text-slate-400 text-xs font-mono">SpO2: <span class="text-emerald-400 font-bold">98%</span></div>
+                                </div>
+
+                                <!-- Circular SOS button on screen -->
+                                <button onclick="triggerWatchSos()" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-[10px] font-bold text-white rounded-full uppercase tracking-wider border border-white/10 shadow-lg shadow-rose-600/30 cursor-pointer">
+                                    SOS Broadcast
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 text-center max-w-xs">
+                            Click the watch SOS button to simulate a worker falling or pressing the emergency lock, broadcasting immediately to the controller dashboard.
+                        </p>
+                    </div>
+
+                    <!-- Smartphone Companion App Mockup -->
+                    <div class="glass-panel rounded-2xl p-8 flex flex-col items-center space-y-6">
+                        <span class="text-xs uppercase font-bold tracking-wider text-slate-500">Android / iOS Companion View</span>
+                        
+                        <!-- Phone Frame Mockup -->
+                        <div class="w-56 h-96 rounded-3xl bg-slate-950 border-4 border-slate-800 p-3 relative flex flex-col justify-between shadow-2xl">
+                            <!-- Notch -->
+                            <div class="w-24 h-4.5 bg-slate-800 rounded-b-xl mx-auto absolute top-0 left-1/2 -translate-x-1/2"></div>
+                            
+                            <!-- Phone screen content -->
+                            <div class="flex-1 w-full rounded-2xl bg-slate-900/60 p-4 pt-6 flex flex-col justify-between font-sans border border-white/5">
+                                <div class="flex items-center justify-between text-[9px] font-mono text-slate-500">
+                                    <span>Sentinel App</span>
+                                    <span>100% Secure</span>
+                                </div>
+
+                                <!-- Danger Warning inside Phone Screen -->
+                                <div id="phone-alert-card" class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center space-y-1.5 transition-all duration-300">
+                                    <i data-lucide="shield-check" id="phone-alert-icon" class="w-6 h-6 text-emerald-400 mx-auto"></i>
+                                    <div class="text-[11px] font-bold text-white" id="phone-alert-title">Zone Safety Active</div>
+                                    <p class="text-[9px] text-slate-400 leading-normal" id="phone-alert-desc">Your location (Zone A) is verified safe. AI guardian online.</p>
+                                </div>
+
+                                <!-- Worker profile inside phone -->
+                                <div class="bg-white/5 border border-white/5 rounded-xl p-2.5 flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white font-mono">W1</div>
+                                    <div class="flex-1">
+                                        <div class="text-[10px] font-bold text-white">John Doe (Worker)</div>
+                                        <div class="text-[8px] text-slate-400">Position: [14.2, 8.5]</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 text-center max-w-xs">
+                            The phone app dynamically displays location-based risk warnings as workers travel across 3D coordinates.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 7: OpenAPI Swagger documentation -->
+            <div id="tab-swagger-api" class="tab-content h-full w-full hidden overflow-y-auto p-6 space-y-6 custom-scroll">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-white">OpenAPI REST Specification</h2>
+                    <p class="text-xs text-slate-400 mt-1">Interactive API specifications. Click "Try it Out" to query mock HTTP endpoints served by the Fog controller.</p>
+                </div>
+
+                <!-- Swagger UI Style box -->
+                <div class="glass-panel rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+                    <!-- Title header bar -->
+                    <div class="bg-white/5 border-b border-white/10 px-6 py-4 flex items-center justify-between">
+                        <div>
+                            <span class="text-lg font-bold text-white">Sentinel-X Core API</span>
+                            <span class="text-[10px] uppercase font-bold tracking-widest text-cyan-400 ml-3">v1.0.4-beta</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-xs font-mono border border-emerald-500/20">HTTPS Listener</span>
+                    </div>
+
+                    <div class="p-6 space-y-6">
+                        <!-- Endpoint 1: GET Alerts -->
+                        <div class="border border-white/5 rounded-xl overflow-hidden bg-brand-black/30">
+                            <!-- header -->
+                            <div class="flex flex-wrap items-center justify-between p-3 bg-blue-900/15 border-b border-white/5 gap-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-3 py-1 bg-blue-600 text-xs font-bold text-white rounded font-mono">GET</span>
+                                    <span class="text-sm font-mono text-slate-300 font-semibold">/api/v1/alerts/active</span>
+                                </div>
+                                <button onclick="tryApi('alerts')" class="px-3.5 py-1 bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold rounded text-slate-300 hover:text-white transition-all">Try it out</button>
+                            </div>
+                            <!-- response payload area -->
+                            <div class="p-4 hidden font-mono text-xs text-slate-400 bg-brand-black/70 overflow-x-auto custom-scroll" id="api-res-alerts">
+                                <pre class="text-emerald-400">Response (200 OK):</pre>
+                                <pre class="text-slate-300 mt-2">[]</pre>
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 2: GET Sensor Values -->
+                        <div class="border border-white/5 rounded-xl overflow-hidden bg-brand-black/30">
+                            <!-- header -->
+                            <div class="flex flex-wrap items-center justify-between p-3 bg-blue-900/15 border-b border-white/5 gap-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-3 py-1 bg-blue-600 text-xs font-bold text-white rounded font-mono">GET</span>
+                                    <span class="text-sm font-mono text-slate-300 font-semibold">/api/v1/sensors/telemetry</span>
+                                </div>
+                                <button onclick="tryApi('sensors')" class="px-3.5 py-1 bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold rounded text-slate-300 hover:text-white transition-all">Try it out</button>
+                            </div>
+                            <!-- response payload area -->
+                            <div class="p-4 hidden font-mono text-xs text-slate-400 bg-brand-black/70 overflow-x-auto custom-scroll" id="api-res-sensors">
+                                <pre class="text-emerald-400">Response (200 OK):</pre>
+                                <pre class="text-slate-300 mt-2">{}</pre>
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 3: POST Shutdown -->
+                        <div class="border border-white/5 rounded-xl overflow-hidden bg-brand-black/30">
+                            <!-- header -->
+                            <div class="flex flex-wrap items-center justify-between p-3 bg-rose-900/15 border-b border-white/5 gap-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-3 py-1 bg-rose-600 text-xs font-bold text-white rounded font-mono">POST</span>
+                                    <span class="text-sm font-mono text-slate-300 font-semibold">/api/v1/machine/lockout</span>
+                                </div>
+                                <button onclick="tryApi('lockout')" class="px-3.5 py-1 bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold rounded text-slate-300 hover:text-white transition-all">Try it out</button>
+                            </div>
+                            <!-- response payload area -->
+                            <div class="p-4 hidden font-mono text-xs text-slate-400 bg-brand-black/70 overflow-x-auto custom-scroll" id="api-res-lockout">
+                                <pre class="text-emerald-400">Response (200 OK):</pre>
+                                <pre class="text-slate-300 mt-2">{}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 8: Settings Tab -->
+            <div id="tab-settings" class="tab-content h-full w-full hidden overflow-y-auto p-6 space-y-6 custom-scroll">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-white">System Settings</h2>
+                    <p class="text-xs text-slate-400 mt-1">Configure threshold warning systems, activate AI model weights, and customize active alert dispatch rules.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-5xl">
+                    <!-- Left Config forms -->
+                    <div class="lg:col-span-8 space-y-6">
+                        <!-- Sensor config -->
+                        <div class="glass-panel rounded-2xl p-6 space-y-4">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i data-lucide="gauge" class="w-5 h-5 text-blue-400"></i>
+                                <span>Sensor Telemetry Thresholds</span>
+                            </h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-xs text-slate-400 font-mono">CO2 Warning Limit (PPM)</label>
+                                    <input type="number" id="cfg-co2-limit" value="800" class="w-full bg-brand-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs text-slate-400 font-mono">Temperature Shutdown Limit (°C)</label>
+                                    <input type="number" id="cfg-temp-limit" value="85" class="w-full bg-brand-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs text-slate-400 font-mono">Compressor Max Vibration (Hz)</label>
+                                    <input type="number" id="cfg-vib-limit" value="120" class="w-full bg-brand-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs text-slate-400 font-mono">Noise Exposure Threshold (dB)</label>
+                                    <input type="number" id="cfg-noise-limit" value="85" class="w-full bg-brand-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification rules -->
+                        <div class="glass-panel rounded-2xl p-6 space-y-4">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i data-lucide="bell" class="w-5 h-5 text-blue-400"></i>
+                                <span>Automated Incident Dispatch Channels</span>
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-slate-300">Dispatch SMS Alerts to Supervisors</span>
+                                    <input type="checkbox" checked class="accent-blue-500 w-4 h-4 cursor-pointer">
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-slate-300">Broadcast Whatsapp Evacuation Logs</span>
+                                    <input type="checkbox" checked class="accent-blue-500 w-4 h-4 cursor-pointer">
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-slate-300">Auto Shutdown plc controllers during Red Siren</span>
+                                    <input type="checkbox" checked class="accent-blue-500 w-4 h-4 cursor-pointer">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="saveSettings()" class="px-6 py-3 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all border border-white/10">Save Configuration</button>
+                    </div>
+
+                    <!-- Right quick info -->
+                    <div class="lg:col-span-4 glass-panel rounded-2xl p-6 h-fit space-y-4">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Active AI Weight Profile</h4>
+                        <div class="bg-brand-black/40 border border-white/5 rounded-xl p-3 space-y-2 text-xs font-mono">
+                            <div class="flex justify-between"><span>CV Model:</span><span class="text-cyan-400">YOLOv11s-PPE-26.onnx</span></div>
+                            <div class="flex justify-between"><span>Biometrics:</span><span class="text-cyan-400">DNA_hrv_v1.2.pkl</span></div>
+                            <div class="flex justify-between"><span>Risk Fields:</span><span class="text-cyan-400">Risk_f_v3.4.1.pb</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripting Engine Logic -->
+    <script>
+        // Clean error handler placeholders (errors handled globally in head)
+
+        // Init Lucide Icons
+        lucide.createIcons();
+
+        // Retrieve User Session Profile Role
+        const currentRole = sessionStorage.getItem("userRole") || "Admin";
+        const currentEmail = sessionStorage.getItem("userEmail") || "admin@sentinel.x";
+        const currentName = sessionStorage.getItem("userName") || "Administrator";
+
+        document.getElementById('avatar-name').innerText = currentName;
+        document.getElementById('avatar-role').innerText = currentRole;
+        document.getElementById('avatar-letters').innerText = currentRole.split(' ').map(n=>n[0]).join('');
+
+        // Tab Navigation Mechanism
+        function switchTab(tabId) {
+            // Hide all content tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(t => t.classList.add('hidden'));
+
+            // Show active tab
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Deactivate other nav sidebar selections
+            const buttons = document.querySelectorAll('nav button');
+            buttons.forEach(b => b.classList.remove('active-tab'));
+
+            // Set current active state
+            document.getElementById(`nav-${tabId}`).classList.add('active-tab');
+
+            // Trigger canvas layout adjusts if loading Threejs or 2D Canvas
+            if (tabId === 'digital-twin') {
+                adjustThreeJsLayout();
+            }
+        }
+
+        function handleLogout() {
+            sessionStorage.clear();
+            window.location.href = "auth.html";
+        }
+
+        // Clock display
+        setInterval(() => {
+            const now = new Date();
+            const hrs = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const secs = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('header-clock').innerText = `${hrs}:${mins}:${secs}`;
+        }, 1000);
+
+        // ==========================================
+        // 2D Spatial Floor Map Canvas Implementation
+        // ==========================================
+        const mapCanvas = document.getElementById('floor-map-canvas');
+        const mapCtx = mapCanvas.getContext('2d');
+        
+        function resizeMapCanvas() {
+            mapCanvas.width = mapCanvas.parentElement.clientWidth;
+            mapCanvas.height = mapCanvas.parentElement.clientHeight;
+        }
+        resizeMapCanvas();
+        window.addEventListener('resize', resizeMapCanvas);
+
+        // Simulated Positions
+        let workers = [
+            { id: 'John Doe', x: 100, y: 120, targetX: 100, targetY: 120, status: 'Compliant' },
+            { id: 'Sarah V.', x: 300, y: 200, targetX: 300, targetY: 200, status: 'Compliant' },
+            { id: 'Mike T.', x: 450, y: 80, targetX: 450, targetY: 80, status: 'Compliant' }
+        ];
+        let forklift = { x: 50, y: 220, targetX: 500, targetY: 220, speed: 1.5 };
+
+        // 2D Draw Loop
+        function draw2DMap() {
+            mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+
+            // Draw grid
+            mapCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            mapCtx.lineWidth = 1;
+            const step = 20;
+            for(let x = 0; x < mapCanvas.width; x += step) {
+                mapCtx.beginPath();
+                mapCtx.moveTo(x, 0);
+                mapCtx.lineTo(x, mapCanvas.height);
+                mapCtx.stroke();
+            }
+            for(let y = 0; y < mapCanvas.height; y += step) {
+                mapCtx.beginPath();
+                mapCtx.moveTo(0, y);
+                mapCtx.lineTo(mapCanvas.width, y);
+                mapCtx.stroke();
+            }
+
+            // Draw Restricted Zone A
+            mapCtx.fillStyle = 'rgba(239, 68, 68, 0.15)';
+            mapCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+            mapCtx.lineWidth = 2;
+            mapCtx.fillRect(350, 40, 180, 120);
+            mapCtx.strokeRect(350, 40, 180, 120);
+            mapCtx.fillStyle = 'rgba(239, 68, 68, 0.7)';
+            mapCtx.font = 'bold 9px sans-serif';
+            mapCtx.fillText('RESTRICTED COMPRESSOR ZONE B', 360, 55);
+
+            // Draw Safety Egress Exit path
+            mapCtx.strokeStyle = 'rgba(234, 179, 8, 0.3)';
+            mapCtx.setLineDash([5, 5]);
+            mapCtx.lineWidth = 3;
+            mapCtx.beginPath();
+            mapCtx.moveTo(100, 120);
+            mapCtx.lineTo(100, 280);
+            mapCtx.lineTo(550, 280);
+            mapCtx.stroke();
+            mapCtx.setLineDash([]); // Reset
+
+            // Update & Draw Workers
+            workers.forEach(w => {
+                // Move towards targets
+                if (Math.abs(w.x - w.targetX) < 2 && Math.abs(w.y - w.targetY) < 2) {
+                    w.targetX = Math.random() * (mapCanvas.width - 100) + 50;
+                    w.targetY = Math.random() * (mapCanvas.height - 100) + 50;
+                    
+                    // Don't drift into restricted zone unless gas leak/simulation triggered
+                    if (isGasSimulationActive && Math.random() > 0.5) {
+                        w.targetX = 400; // Walk to zone B
+                        w.targetY = 100;
+                    }
+                }
+                w.x += (w.targetX - w.x) * 0.01;
+                w.y += (w.targetY - w.y) * 0.01;
+
+                // Draw worker dots
+                mapCtx.fillStyle = '#3B82F6';
+                if(w.x >= 350 && w.x <= 530 && w.y >= 40 && w.y <= 160) {
+                    // Inside restricted zone
+                    mapCtx.fillStyle = '#EF4444';
+                    // Trigger alert if not already logged
+                    logZoneBreach(w.id);
+                }
+                mapCtx.beginPath();
+                mapCtx.arc(w.x, w.y, 6, 0, Math.PI*2);
+                mapCtx.fill();
+
+                // Draw name
+                mapCtx.fillStyle = '#94A3B8';
+                mapCtx.font = '9px monospace';
+                mapCtx.fillText(w.id, w.x - 18, w.y - 10);
+            });
+
+            // Update & Draw Forklift
+            if(Math.abs(forklift.x - forklift.targetX) < 4) {
+                const tmp = forklift.x;
+                forklift.targetX = forklift.targetX === 50 ? 550 : 50;
+            }
+            forklift.x += (forklift.targetX > forklift.x) ? forklift.speed : -forklift.speed;
+
+            mapCtx.fillStyle = '#F59E0B';
+            mapCtx.beginPath();
+            mapCtx.fillRect(forklift.x - 10, forklift.y - 6, 20, 12);
+            mapCtx.fillStyle = '#F3F4F6';
+            mapCtx.fillText('FORKLIFT 01', forklift.x - 24, forklift.y - 12);
+
+            requestAnimationFrame(draw2DMap);
+        }
+        draw2DMap();
+
+        // Zone breach alerts logging
+        var lastBreachLogged = 0;
+        function logZoneBreach(workerId) {
+            const now = Date.now();
+            if (now - lastBreachLogged > 8000) {
+                lastBreachLogged = now;
+                const hh = String(new Date().getHours()).padStart(2, '0');
+                const mm = String(new Date().getMinutes()).padStart(2, '0');
+                const ss = String(new Date().getSeconds()).padStart(2, '0');
+
+                addAlert({
+                    title: `Intrusion Warning`,
+                    desc: `${workerId} crossed Zone B Restricted compressor boundary.`,
+                    type: 'warning',
+                    time: `${hh}:${mm}:${ss}`
+                });
+            }
+        }
+
+        // ==========================================
+        // Alarm & Alert Streams Logger
+        // ==========================================
+        function addAlert(alertObj) {
+            const container = document.getElementById('alert-logs-container');
+            const newAlert = document.createElement('div');
+            
+            let colorClasses = "bg-blue-500/5 border-blue-500/10 text-blue-400";
+            let dotColor = "bg-blue-400";
+            if (alertObj.type === 'critical') {
+                colorClasses = "bg-rose-500/10 border-rose-500/20 text-rose-400 animate-pulse border-l-4 border-l-rose-500";
+                dotColor = "bg-rose-500";
+                // Play notification alert
+                playAlertSound();
+            } else if (alertObj.type === 'warning') {
+                colorClasses = "bg-orange-500/10 border-orange-500/20 text-orange-400 border-l-4 border-l-orange-500";
+                dotColor = "bg-orange-400";
+                playWarningSound();
+            }
+
+            newAlert.className = `${colorClasses} rounded-xl p-3 border flex items-start gap-3`;
+            newAlert.innerHTML = `
+                <div class="w-2 h-2 rounded-full ${dotColor} mt-1.5 shrink-0"></div>
+                <div class="flex-1">
+                    <div class="text-xs font-bold text-white flex justify-between">
+                        <span>${alertObj.title}</span>
+                        <span class="text-[10px] font-mono text-slate-500">${alertObj.time}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">${alertObj.desc}</p>
+                </div>
+            `;
+            container.insertBefore(newAlert, container.firstChild);
+
+            // Increment count in header
+            const hCount = document.getElementById('header-alerts-count');
+            hCount.innerText = parseInt(hCount.innerText) + 1;
+
+            const hActive = document.getElementById('header-active-alerts');
+            if(alertObj.type === 'critical' || alertObj.type === 'warning') {
+                hActive.innerText = "Active Alarm";
+                hActive.className = "px-1.5 py-0.5 rounded text-[8px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+            }
+        }
+
+        function clearAlerts() {
+            document.getElementById('alert-logs-container').innerHTML = '';
+        }
+
+        // Mock audio synths for alerts using Web Audio API
+        var audioCtx;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        function playAlertSound() {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(660, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch(e){}
+        }
+
+        function playWarningSound() {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            } catch(e){}
+        }
+
+        // Global Siren Logic
+        var isSirenActive = false;
+        var sirenOsc, sirenGain, sirenInterval;
+        function toggleGlobalSiren() {
+            isSirenActive = !isSirenActive;
+            const btn = document.getElementById('siren-btn');
+            
+            if (isSirenActive) {
+                btn.classList.add('bg-rose-600', 'border-rose-500', 'text-white');
+                btn.classList.remove('bg-white/5', 'text-slate-400');
+                
+                // Start siren audio loop
+                initAudio();
+                sirenOsc = audioCtx.createOscillator();
+                sirenGain = audioCtx.createGain();
+                sirenOsc.type = 'sine';
+                sirenOsc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                sirenGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                
+                sirenOsc.connect(sirenGain);
+                sirenGain.connect(audioCtx.destination);
+                sirenOsc.start();
+
+                let up = true;
+                sirenInterval = setInterval(() => {
+                    if (up) {
+                        sirenOsc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.5);
+                    } else {
+                        sirenOsc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.5);
+                    }
+                    up = !up;
+                }, 500);
+
+                const hh = String(new Date().getHours()).padStart(2, '0');
+                const mm = String(new Date().getMinutes()).padStart(2, '0');
+                const ss = String(new Date().getSeconds()).padStart(2, '0');
+                addAlert({
+                    title: "EVACUATION SIREN ACTIVE",
+                    desc: "Supervisor manual override activated the global plant safety siren.",
+                    type: "critical",
+                    time: `${hh}:${mm}:${ss}`
+                });
+
+                // Update phone UI to show warning
+                triggerPhoneWarning("SIREN ACTIVE", "Manual siren trigger. Proceed immediately to nearest green safety exits.");
+            } else {
+                btn.classList.remove('bg-rose-600', 'border-rose-500', 'text-white');
+                btn.classList.add('bg-white/5', 'text-slate-400');
+                
+                clearInterval(sirenInterval);
+                if (sirenOsc) { sirenOsc.stop(); }
+                
+                // Clear phone alert
+                resetPhoneAlert();
+            }
+        }
+
+        // ==========================================
+        // ThreeJS 3D Digital Twin Scene Setup
+        // ==========================================
+        var scene3D, camera3D, renderer3D, controls3D;
+        var boilerMesh, conveyorBelt, craneGroup, forkliftGroup, workerMesh1, workerMesh2, boxesGroup, gasParticles = [];
+        var isGasSimulationActive = false;
+        var isBoilerFireActive = false;
+        var isEvacuationActive = false;
+        var currentAtmosphere = 'sunny';
+        var evacArrows = [];
+        function initThree3D() {
+            const container = document.getElementById('canvas-container-3d');
+            
+            // Fallback dimensions if container is hidden (0px width/height on startup)
+            const width = container.clientWidth || window.innerWidth || 800;
+            const height = container.clientHeight || window.innerHeight || 600;
+            const aspect = width / height;
+
+            // Scene
+            scene3D = new THREE.Scene();
+            scene3D.background = new THREE.Color(0x060814);
+            
+            // Camera
+            camera3D = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
+            camera3D.position.set(40, 30, 50);
+
+            // Renderer
+            renderer3D = new THREE.WebGLRenderer({ antialias: true });
+            renderer3D.setSize(width, height);
+            renderer3D.shadowMap.enabled = true;
+            container.appendChild(renderer3D.domElement);
+
+            // Controls
+            controls3D = new THREE.OrbitControls(camera3D, renderer3D.domElement);
+            controls3D.enableDamping = true;
+            controls3D.dampingFactor = 0.05;
+            controls3D.maxPolarAngle = Math.PI / 2 - 0.05; // Lock camera from going below floor
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+            scene3D.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
+            dirLight.position.set(20, 50, 20);
+            dirLight.castShadow = true;
+            scene3D.add(dirLight);
+
+            // Grid Floor
+            const gridHelper = new THREE.GridHelper(80, 40, 0x1E3A8A, 0x111827);
+            gridHelper.position.y = 0;
+            scene3D.add(gridHelper);
+
+            // Load Realistic Factory Model
+            const fbxLoader = new THREE.FBXLoader();
+            fbxLoader.load(
+                '/assets/3d_models/factory/1/uploads_files_2883707_warehouse6.fbx',
+                (object) => {
+                    console.log('Model loaded successfully! Applying bounding box fit.');
+                    
+                    // Center and scale the model automatically
+                    const box = new THREE.Box3().setFromObject(object);
+                    const size = box.getSize(new THREE.Vector3());
+                    const center = box.getCenter(new THREE.Vector3());
+
+                    // We want the model to fit inside a 60x60x60 boundary
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    if (maxDim > 0) {
+                        const targetScale = 60 / maxDim;
+                        object.scale.set(targetScale, targetScale, targetScale);
+                    }
+
+                    // Shift model so its horizontal center is (0,0) and bottom touches y=0
+                    box.setFromObject(object);
+                    box.getCenter(center);
+                    object.position.sub(center);
+                    object.position.y = -box.min.y; // Align bottom with the floor grid
+
+                    object.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+
+                            // Ensure it has a visible, high-end metallic/slate corporate look
+                            if (child.material) {
+                                const mats = Array.isArray(child.material) ? child.material : [child.material];
+                                mats.forEach(mat => {
+                                    if (mat.color) {
+                                        const hex = mat.color.getHex();
+                                        // If it is pure white or black, replace it with a nice slate blue/gray
+                                        if (hex === 0xffffff || hex === 0x000000) {
+                                            mat.color.setHex(0x1F2937); 
+                                        }
+                                    }
+                                    mat.roughness = 0.45;
+                                    mat.metalness = 0.35;
+                                    mat.needsUpdate = true;
+                                });
+                            }
+                        }
+                    });
+
+                    scene3D.add(object);
+                    dirLight.target = object;
+                    console.log('Processed realistic factory mesh added to scene.');
+                    
+                    // Hide loading overlay
+                    const loader = document.getElementById('loading-overlay-3d');
+                    if (loader) loader.style.display = 'none';
+                },
+                (xhr) => {
+                    const percent = Math.round(xhr.loaded / (xhr.total || 44591708) * 100);
+                    console.log('FBX:', percent + '% loaded');
+                    const label = document.getElementById('loading-progress-text');
+                    if (label) label.innerText = `${percent}% Loaded`;
+                },
+                (error) => {
+                    console.error('Error loading FBX model:', error);
+                    logErrorToServer('FBX Load Error', error.message);
+                    showVisualError('FBX Load Error', error.message);
+                    const label = document.getElementById('loading-progress-text');
+                    if (label) {
+                        label.innerText = 'Failed to load model.';
+                        label.classList.add('text-rose-500');
+                    }
+                }
+            );
+
+            // 5. Worker avatars (Glowing Capsules)
+            const wGeo = new THREE.CylinderGeometry(0.8, 0.8, 3, 8);
+            
+            const wMat1 = new THREE.MeshBasicMaterial({ color: 0x3B82F6 });
+            workerMesh1 = new THREE.Mesh(wGeo, wMat1);
+            workerMesh1.position.set(-5, 1.5, -5);
+            scene3D.add(workerMesh1);
+
+            const wMat2 = new THREE.MeshBasicMaterial({ color: 0x10B981 });
+            workerMesh2 = new THREE.Mesh(wGeo, wMat2);
+            workerMesh2.position.set(12, 1.5, -12);
+            scene3D.add(workerMesh2);
+
+            // 6. Restricted compressor area box boundary
+            const boundaryGeo = new THREE.BoxGeometry(16, 8, 16);
+            const boundaryMat = new THREE.MeshBasicMaterial({ color: 0xEF4444, wireframe: true });
+            const boundaryMesh = new THREE.Mesh(boundaryGeo, boundaryMat);
+            boundaryMesh.position.set(-18, 4, -15);
+            scene3D.add(boundaryMesh);
+
+            // Start 3D Loop
+            animateThree3D();
+        }
+
+        // Add visual JS error reporting
+        window.onerror = function(msg, url, line) {
+            reportErrorToConsole('Script Error', `${msg} (line ${line})`);
+        };
+        function reportErrorToConsole(type, message) {
+            const container = document.getElementById('alert-logs-container');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = "bg-red-900/20 border border-red-500/50 p-2 text-[10px] text-red-400 rounded mt-1 font-mono";
+            errorDiv.innerHTML = `<strong>${type}:</strong> ${message}`;
+            if(container) container.prepend(errorDiv);
+        }
+
+        function adjustThreeJsLayout() {
+            if (renderer3D) {
+                const container = document.getElementById('canvas-container-3d');
+                const width = container.clientWidth || window.innerWidth || 800;
+                const height = container.clientHeight || window.innerHeight || 600;
+                camera3D.aspect = width / height;
+                camera3D.updateProjectionMatrix();
+                renderer3D.setSize(width, height);
+            }
+        }
+        window.addEventListener('resize', adjustThreeJsLayout);;
+
+        // 3D Animation Logic Loop
+        var frameCount = 0;
+        var isPlaybackPaused = false;
+        function animateThree3D() {
+            requestAnimationFrame(animateThree3D);
+            
+            if (isPlaybackPaused) return;
+
+            frameCount++;
+
+            // Rotate crane jib arm back and forth
+            if (craneGroup) {
+                craneGroup.children[1].rotation.y = Math.sin(frameCount * 0.01) * 0.5;
+            }
+
+            // Move conveyor belt boxes
+            if (boxesGroup) {
+                boxesGroup.children.forEach(box => {
+                    box.position.x += 0.05;
+                    if (box.position.x > 25) {
+                        box.position.x = -5;
+                    }
+                });
+            }
+
+            // Patrol Forklift back and forth
+            if (forkliftGroup) {
+                const limit = 25;
+                if (!forkliftGroup.userData.direction) { forkliftGroup.userData.direction = 1; }
+                
+                forkliftGroup.position.x += 0.08 * forkliftGroup.userData.direction;
+                if (Math.abs(forkliftGroup.position.x) > limit) {
+                    forkliftGroup.userData.direction *= -1;
+                    forkliftGroup.rotation.y += Math.PI; // Flip direction
+                }
+            }
+
+            // Animate Workers patrol
+            if (workerMesh1 && !isEvacuationActive) {
+                workerMesh1.position.z = -5 + Math.sin(frameCount * 0.015) * 8;
+                workerMesh1.position.x = -5 + Math.cos(frameCount * 0.01) * 4;
+            }
+            if (workerMesh2 && !isEvacuationActive) {
+                workerMesh2.position.x = 12 + Math.sin(frameCount * 0.02) * 10;
+            }
+
+            // Evacuation paths update (Green blinking arrows moving towards exits)
+            if (isEvacuationActive) {
+                // Move workerMesh1 and workerMesh2 towards safe exits
+                // Worker 1 goes to Exit Left [-35, 1.5, 20]
+                const t1 = new THREE.Vector3(-35, 1.5, 20);
+                workerMesh1.position.lerp(t1, 0.015);
+                
+                // Worker 2 goes to Exit Right [35, 1.5, 20]
+                const t2 = new THREE.Vector3(35, 1.5, 20);
+                workerMesh2.position.lerp(t2, 0.015);
+            }
+
+            // Handle Boiler Overheat simulation
+            if (isBoilerFireActive) {
+                // Flash Boiler red-orange color
+                const colorVal = Math.sin(frameCount * 0.2) > 0 ? 0xDC2626 : 0xEA580C;
+                if (boilerMesh) boilerMesh.material.color.setHex(colorVal);
+
+                // Spawn spark particles
+                const p = new THREE.Mesh(new THREE.SphereGeometry(0.3, 4, 4), new THREE.MeshBasicMaterial({ color: 0xEA580C }));
+                p.position.set(-18 + (Math.random()-0.5)*4, 11, -15 + (Math.random()-0.5)*4);
+                p.userData.vel = new THREE.Vector3((Math.random()-0.5)*0.3, Math.random()*0.5 + 0.1, (Math.random()-0.5)*0.3);
+                scene3D.add(p);
+                gasParticles.push(p);
+            }
+
+            // Handle Gas Leak simulation
+            if (isGasSimulationActive) {
+                // Spawn green volumetric gas clouds
+                if (frameCount % 4 === 0) {
+                    const p = new THREE.Mesh(new THREE.SphereGeometry(1.5, 8, 8), new THREE.MeshBasicMaterial({ color: 0x10B981, transparent: true, opacity: 0.3 }));
+                    p.position.set(-18, 5, -15);
+                    p.userData.vel = new THREE.Vector3((Math.random()-0.5)*0.2, Math.random()*0.1 + 0.05, (Math.random()-0.5)*0.2);
+                    scene3D.add(p);
+                    gasParticles.push(p);
+                }
+            }
+
+            // Animate spark / gas particles
+            for (let i = gasParticles.length - 1; i >= 0; i--) {
+                const part = gasParticles[i];
+                part.position.add(part.userData.vel);
+                if (isGasSimulationActive) {
+                    part.scale.addScalar(0.04);
+                    part.material.opacity -= 0.005;
+                } else if (isBoilerFireActive) {
+                    part.userData.vel.y -= 0.02; // Gravity fall
+                }
+
+                // Remove faded or low particles
+                if (part.material.opacity <= 0 || part.position.y < 0 || gasParticles.length > 200) {
+                    scene3D.remove(part);
+                    gasParticles.splice(i, 1);
+                }
+            }
+
+            controls3D.update();
+            renderer3D.render(scene3D, camera3D);
+        }
+
+        // Trigger Simulations
+        function triggerSimulation(type) {
+            const hh = String(new Date().getHours()).padStart(2, '0');
+            const mm = String(new Date().getMinutes()).padStart(2, '0');
+            const ss = String(new Date().getSeconds()).padStart(2, '0');
+
+            resetSimulation();
+
+            if (type === 'gas-leak') {
+                isGasSimulationActive = true;
+                document.getElementById('btn-sim-gas').className = "px-3 py-2 rounded-lg bg-emerald-600 border-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 justify-center";
+                
+                addAlert({
+                    title: "CRITICAL GAS LEAK DETECTED",
+                    desc: "Boiler B relief valve ruptured. Hydrogen sulfide gas concentration rising above 800ppm.",
+                    type: "critical",
+                    time: `${hh}:${mm}:${ss}`
+                });
+
+                // Focus Camera
+                focusCamera('boiler');
+                triggerPhoneWarning("GAS LEAK IN ZONE B", "High toxic gas level. Evacuate compressor floor immediately.");
+            } else if (type === 'boiler-fire') {
+                isBoilerFireActive = true;
+                document.getElementById('btn-sim-fire').className = "px-3 py-2 rounded-lg bg-rose-600 border-rose-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 justify-center";
+
+                addAlert({
+                    title: "CRITICAL BOILER OVERHEAT",
+                    desc: "Boiler B core temperatures exceeding 94°C. Severe thermal rupture risk.",
+                    type: "critical",
+                    time: `${hh}:${mm}:${ss}`
+                });
+
+                focusCamera('boiler');
+                triggerPhoneWarning("BOILER RUPTURE RISK", "Zone B boiler overheated. Safety mesh initiating drone cooling dispatch.");
+            } else if (type === 'evacuation') {
+                isEvacuationActive = true;
+                document.getElementById('btn-sim-evac').className = "px-3 py-2 rounded-lg bg-yellow-600 border-yellow-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 justify-center";
+
+                // Draw Exit routing lines in 3D scene
+                drawEvacPaths3D();
+
+                addAlert({
+                    title: "EVACUATION PATHWAYS ACTIVE",
+                    desc: "Mesh Router dispatched pathfinding guides. Workers routed to left and right fire exits.",
+                    type: "warning",
+                    time: `${hh}:${mm}:${ss}`
+                });
+                triggerPhoneWarning("EVACUATION EN ROUTE", "Follow the green pulsing floor indicator lights to safety exits.");
+            }
+        }
+
+        function resetSimulation() {
+            isGasSimulationActive = false;
+            isBoilerFireActive = false;
+            isEvacuationActive = false;
+
+            // Reset buttons styling
+            document.getElementById('btn-sim-gas').className = "px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-bold hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all flex items-center gap-1.5 justify-center";
+            document.getElementById('btn-sim-fire').className = "px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-bold hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-400 transition-all flex items-center gap-1.5 justify-center";
+            document.getElementById('btn-sim-evac').className = "px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 text-xs font-bold hover:border-yellow-500/30 hover:bg-yellow-500/10 hover:text-yellow-400 transition-all flex items-center gap-1.5 justify-center";
+
+            // Clean up particles
+            gasParticles.forEach(p => scene3D.remove(p));
+            gasParticles = [];
+
+            // Reset Boiler color
+            if (boilerMesh) {
+                boilerMesh.material.color.setHex(0x334155);
+            }
+
+            // Remove Evacuation Arrows
+            evacArrows.forEach(arrow => scene3D.remove(arrow));
+            evacArrows = [];
+
+            // Reset Worker coordinates
+            if (workerMesh1) workerMesh1.position.set(-5, 1.5, -5);
+            if (workerMesh2) workerMesh2.position.set(12, 1.5, -12);
+
+            resetPhoneAlert();
+        }
+
+        function drawEvacPaths3D() {
+            // Draw green paths with helper meshes pointing to exits
+            // Exit Left: [-35, 0.1, 20], Exit Right: [35, 0.1, 20]
+            const path1Geo = new THREE.BoxGeometry(40, 0.1, 1);
+            const path1Mat = new THREE.MeshBasicMaterial({ color: 0x10B981, transparent: true, opacity: 0.6 });
+            const path1 = new THREE.Mesh(path1Geo, path1Mat);
+            path1.position.set(-20, 0.1, 10);
+            scene3D.add(path1);
+            evacArrows.push(path1);
+
+            const path2 = new THREE.Mesh(path1Geo, path1Mat);
+            path2.position.set(20, 0.1, 10);
+            scene3D.add(path2);
+            evacArrows.push(path2);
+        }
+
+        // Camera focus presets
+        function focusCamera(target) {
+            if (target === 'boiler') {
+                camera3D.position.set(-18, 12, 10);
+                controls3D.target.set(-18, 6, -15);
+            } else if (target === 'conveyor') {
+                camera3D.position.set(10, 8, 30);
+                controls3D.target.set(10, 1, 15);
+            }
+        }
+
+        // Scenarios Lighting
+        function setLighting(type) {
+            currentAtmosphere = type;
+            const ambient = scene3D.children.find(c => c instanceof THREE.AmbientLight);
+            
+            if (type === 'sunny') {
+                scene3D.background.setHex(0x060814);
+                if (ambient) ambient.intensity = 0.4;
+            } else if (type === 'night') {
+                scene3D.background.setHex(0x010206);
+                if (ambient) ambient.intensity = 0.05;
+            } else if (type === 'storm') {
+                scene3D.background.setHex(0x04050a);
+                if (ambient) ambient.intensity = 0.15;
+            }
+        }
+
+        // Time travel scrubber
+        function handleTimelineScrub(val) {
+            const label = document.getElementById('time-travel-label');
+            if (val == 24) {
+                label.innerText = "Live Stream Mode";
+                isPlaybackPaused = false;
+            } else {
+                label.innerText = `Replay Mode: ${val}:00 Hrs Log`;
+                isPlaybackPaused = true;
+                // Move workers to specific positions representing the historic timeline
+                if (workerMesh1) workerMesh1.position.set(-15 + (val*1), 1.5, -20 + (val*0.5));
+                if (workerMesh2) workerMesh2.position.set(10 - (val*0.4), 1.5, -5 - (val*0.6));
+            }
+        }
+
+        function togglePlayback() {
+            isPlaybackPaused = !isPlaybackPaused;
+            const icon = document.getElementById('play-pause-icon');
+            if(isPlaybackPaused) {
+                icon.setAttribute('data-lucide', 'play');
+            } else {
+                icon.setAttribute('data-lucide', 'pause');
+            }
+            lucide.createIcons();
+        }
+
+        // Initialize 3D Twin scene on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initThree3D();
+        });
+
+        // ==========================================
+        // Computer Vision (CV) Canvas Feeds
+        // ==========================================
+        const canvases = [
+            document.getElementById('cv-canvas-01'),
+            document.getElementById('cv-canvas-02'),
+            document.getElementById('cv-canvas-03'),
+            document.getElementById('cv-canvas-04')
+        ];
+        const ctxs = canvases.map(c => c.getContext('2d'));
+
+        // Initial setup sizing
+        canvases.forEach(c => {
+            c.width = 480;
+            c.height = 270;
+        });
+
+        var cvFrameCount = 0;
+        function renderCVFeeds() {
+            cvFrameCount++;
+
+            // --- CAMERA 1: PPE GATE CHECK ---
+            const ctx1 = ctxs[0];
+            ctx1.fillStyle = '#0F172A';
+            ctx1.fillRect(0, 0, 480, 270);
+            
+            // Draw grid overlay lines
+            ctx1.strokeStyle = 'rgba(59, 130, 246, 0.15)';
+            ctx1.lineWidth = 1;
+            ctx1.strokeRect(40, 20, 400, 230);
+            
+            // Drawing bounding box on worker 1
+            ctx1.strokeStyle = '#10B981'; // Green Compliant
+            ctx1.lineWidth = 2;
+            const w1X = 120 + Math.sin(cvFrameCount*0.015)*40;
+            ctx1.strokeRect(w1X, 60, 60, 160);
+            ctx1.fillStyle = '#10B981';
+            ctx1.font = '9px monospace';
+            ctx1.fillRect(w1X, 48, 70, 12);
+            ctx1.fillStyle = '#ffffff';
+            ctx1.fillText('WORKER: PPE OK', w1X + 4, 57);
+
+            // Bounding box for helmet check
+            ctx1.strokeStyle = '#3B82F6';
+            ctx1.strokeRect(w1X + 15, 62, 30, 30);
+            
+            // Text overlays
+            ctx1.fillStyle = '#94A3B8';
+            ctx1.fillText(`FPS: 30.2 - YOLOv11s`, 10, 20);
+            ctx1.fillText(`CAMERA_01_GATE`, 10, 255);
+
+            // --- CAMERA 2: RESTRICTED COMPRESSOR ---
+            const ctx2 = ctxs[1];
+            ctx2.fillStyle = '#0F172A';
+            ctx2.fillRect(0, 0, 480, 270);
+            
+            // Draw compressor cylinder
+            ctx2.fillStyle = '#1E293B';
+            ctx2.fillRect(300, 80, 120, 140);
+            
+            // Bounding box on compressor
+            ctx2.strokeStyle = '#EA580C';
+            ctx2.strokeRect(295, 75, 130, 150);
+            ctx2.fillStyle = '#EA580C';
+            ctx2.fillText('MACHINE: COM_B', 300, 70);
+
+            // Drawing worker breaching compressor area
+            const w2X = 140 + Math.sin(cvFrameCount*0.01)*50;
+            const isBreached = w2X > 220;
+            
+            ctx2.strokeStyle = isBreached ? '#EF4444' : '#10B981';
+            ctx2.strokeRect(w2X, 90, 65, 130);
+            ctx2.fillStyle = isBreached ? '#EF4444' : '#10B981';
+            ctx2.fillRect(w2X, 78, 90, 12);
+            ctx2.fillStyle = '#ffffff';
+            ctx2.fillText(isBreached ? 'RESTRICTED Intrusion!' : 'Worker: Compliant', w2X + 4, 87);
+            
+            // Update labels based on state
+            const c2lbl = document.getElementById('cctv2-label');
+            if (isBreached) {
+                c2lbl.innerText = "YOLOv11: Restricted Breach!";
+                c2lbl.className = "text-rose-400 font-bold animate-pulse";
+            } else {
+                c2lbl.innerText = "YOLOv11: Secure";
+                c2lbl.className = "text-emerald-400 font-semibold";
+            }
+
+            ctx2.fillStyle = '#94A3B8';
+            ctx2.fillText(`FPS: 29.8 - YOLOv11x`, 10, 20);
+            ctx2.fillText(`CAMERA_02_COMPRESSOR`, 10, 255);
+
+            // --- CAMERA 3: CONVEYOR LINE ---
+            const ctx3 = ctxs[2];
+            ctx3.fillStyle = '#0F172A';
+            ctx3.fillRect(0, 0, 480, 270);
+
+            // Draw conveyor line path
+            ctx3.fillStyle = '#1F2937';
+            ctx3.fillRect(50, 160, 380, 20);
+
+            // Conveyor boxes bounding box
+            const bx = 80 + (cvFrameCount*2) % 300;
+            ctx3.strokeStyle = '#3B82F6';
+            ctx3.strokeRect(bx, 135, 25, 25);
+            ctx3.fillStyle = '#3B82F6';
+            ctx3.fillText('ASSET: BOX', bx, 130);
+
+            ctx3.fillStyle = '#94A3B8';
+            ctx3.fillText(`FPS: 30.0 - YOLOv11m`, 10, 20);
+            ctx3.fillText(`CAMERA_03_CONVEYOR_LINE`, 10, 255);
+
+            // --- CAMERA 4: ASSEMBLY POSE / FALLS ---
+            const ctx4 = ctxs[3];
+            ctx4.fillStyle = '#0F172A';
+            ctx4.fillRect(0, 0, 480, 270);
+
+            // Draw worker skeleton overlay
+            // Simulate a worker walking, and then falling every 10 seconds (600 frames)
+            const cycle = cvFrameCount % 600;
+            const isFallen = cycle > 480; // Falls for 2 seconds
+
+            const headY = isFallen ? 210 : 100;
+            const pelvisY = isFallen ? 220 : 160;
+            const footY = 240;
+            const wX = 240;
+
+            // Draw skeleton lines
+            ctx4.strokeStyle = isFallen ? '#EF4444' : '#10B981';
+            ctx4.lineWidth = 3;
+            
+            // Spine
+            ctx4.beginPath();
+            ctx4.moveTo(wX, headY + 10);
+            ctx4.lineTo(isFallen ? wX - 40 : wX, pelvisY);
+            ctx4.stroke();
+
+            // Legs
+            ctx4.beginPath();
+            ctx4.moveTo(isFallen ? wX - 40 : wX, pelvisY);
+            ctx4.lineTo(isFallen ? wX - 80 : wX - 20, footY);
+            ctx4.moveTo(isFallen ? wX - 40 : wX, pelvisY);
+            ctx4.lineTo(isFallen ? wX - 60 : wX + 20, footY);
+            ctx4.stroke();
+
+            // Head circle
+            ctx4.fillStyle = isFallen ? '#EF4444' : '#10B981';
+            ctx4.beginPath();
+            ctx4.arc(isFallen ? wX - 50 : wX, headY, 10, 0, Math.PI*2);
+            ctx4.fill();
+
+            // Bounding box overlay
+            ctx4.strokeStyle = isFallen ? '#EF4444' : '#10B981';
+            ctx4.lineWidth = 2;
+            if (isFallen) {
+                ctx4.strokeRect(wX - 95, headY - 15, 110, 60);
+                ctx4.fillStyle = '#EF4444';
+                ctx4.fillRect(wX - 95, headY - 27, 95, 12);
+                ctx4.fillStyle = '#ffffff';
+                ctx4.fillText('BEHAVIOR: FALL DETECTED', wX - 91, -18 + headY);
+
+                const c4lbl = document.getElementById('cctv4-label');
+                c4lbl.innerText = "CRITICAL: FALL DETECTED";
+                c4lbl.className = "text-rose-500 font-bold animate-pulse";
+
+                // Log a critical incident alert once
+                if (cycle === 481) {
+                    const hh = String(new Date().getHours()).padStart(2, '0');
+                    const mm = String(new Date().getMinutes()).padStart(2, '0');
+                    const ss = String(new Date().getSeconds()).padStart(2, '0');
+                    addAlert({
+                        title: "WORKER FALL DETECTED",
+                        desc: "Vision Pose Estimator detected worker collapse on assembly floor zone A.",
+                        type: "critical",
+                        time: `${hh}:${mm}:${ss}`
+                    });
+                    triggerPhoneWarning("FALL DETECTED IN ZONE A", "Motion sensor confirms impact. Medical dispatch alert generated.");
+                }
+            } else {
+                ctx4.strokeRect(wX - 30, headY - 15, 60, 160);
+                ctx4.fillStyle = '#10B981';
+                ctx4.fillRect(wX - 30, headY - 27, 75, 12);
+                ctx4.fillStyle = '#ffffff';
+                ctx4.fillText('WORKER: UPRIGHT', wX - 26, -18 + headY);
+
+                const c4lbl = document.getElementById('cctv4-label');
+                c4lbl.innerText = "YOLOv11: Normal Behavior";
+                c4lbl.className = "text-emerald-400 font-semibold";
+            }
+
+            ctx4.fillStyle = '#94A3B8';
+            ctx4.fillText(`FPS: 30.1 - Pose Net`, 10, 20);
+            ctx4.fillText(`CAMERA_04_ASSEMBLY_FLOOR`, 10, 255);
+
+            requestAnimationFrame(renderCVFeeds);
+        }
+        renderCVFeeds();
+
+        // ==========================================
+        // AI Agent Mesh Chat & Prompt Terminal
+        // ==========================================
+        function handleChatSubmit(event) {
+            event.preventDefault();
+            const input = document.getElementById('chat-prompt-input');
+            const prompt = input.value.trim();
+            if (!prompt) return;
+
+            // Clear input
+            input.value = "";
+
+            // Render User Message
+            appendChatMessage("User", prompt);
+
+            // Process prompt commands
+            setTimeout(() => {
+                let reply = "";
+                const cmd = prompt.toLowerCase();
+
+                if (cmd === '/status') {
+                    reply = `<strong>Cooperative Mesh Decision:</strong><br>
+                             - Vision AI confirms worker count: 3 (compliant).<br>
+                             - Gas Sensors: H2S level is 380 ppm (safe).<br>
+                             - Boiler Temp: 74°C (safe).<br>
+                             - Overall Safety Index: 99.2% (OSHA compliant).`;
+                } else if (cmd === '/leak') {
+                    triggerSimulation('gas-leak');
+                    reply = `<strong>Action Dispatched:</strong> Gas Leak simulation triggered at boiler. Evacuation alarm logged. Check the 3D Digital Twin tab.`;
+                } else if (cmd === '/fire') {
+                    triggerSimulation('boiler-fire');
+                    reply = `<strong>Action Dispatched:</strong> Boiler Thermal Rupture simulation triggered. Spark particles active. Alarm notification logged.`;
+                } else if (cmd === '/shutdown') {
+                    reply = `<strong>Action Dispatched:</strong> Safety locks engaged on compressor PLC valves. Machine shutdown successful.`;
+                } else {
+                    // Regular LLM RAG response logic
+                    reply = `<strong>Reasoning Agent Chain of Thought:</strong><br>
+                             1. Searching local RAG databases for: "${prompt}".<br>
+                             2. Fusing live telemetry (vibrations, temperatures) with RAG manuals.<br>
+                             3. <em>Response:</em> All parameters are normal. No active threat vectors match your query. Safety ratings are high.`;
+                }
+
+                appendChatMessage("Sentinel-X AI", reply);
+            }, 800);
+        }
+
+        function appendChatMessage(sender, text) {
+            const container = document.getElementById('chat-messages-container');
+            const msg = document.createElement('div');
+            msg.className = "flex items-start gap-3.5 max-w-[85%]";
+            
+            if (sender === 'User') {
+                msg.classList.add('ml-auto', 'flex-row-reverse');
+                msg.innerHTML = `
+                    <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center text-white text-xs shrink-0 font-bold">U</div>
+                    <div class="bg-blue-600 text-white p-3 rounded-xl text-xs">${text}</div>
+                `;
+            } else {
+                msg.innerHTML = `
+                    <div class="w-8 h-8 rounded bg-gradient-to-tr from-blue-700 to-cyan-500 flex items-center justify-center text-white text-xs shrink-0 font-bold">AI</div>
+                    <div class="bg-white/5 border border-white/5 p-3 rounded-xl text-xs text-slate-300">${text}</div>
+                `;
+            }
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // ==========================================
+        // Industrial Charts & Analytics (Chart.js)
+        // ==========================================
+        let charts = [];
+        
+        function initCharts() {
+            // Chart 1: Safety Rating
+            const ctx1 = document.getElementById('chart-safety-history').getContext('2d');
+            const chart1 = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+                    datasets: [{
+                        label: 'Safety Rating %',
+                        data: [99.5, 99.4, 99.1, 98.8, 99.0, 99.2],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 95, max: 100 }
+                    }
+                }
+            });
+            charts.push(chart1);
+
+            // Chart 2: Gas levels
+            const ctx2 = document.getElementById('chart-gas-levels').getContext('2d');
+            const chart2 = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Zone A', 'Zone B', 'Zone C', 'Zone D'],
+                    datasets: [{
+                        label: 'H2S Concentration (PPM)',
+                        data: [310, 380, 290, 340],
+                        backgroundColor: '#06B6D4'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            charts.push(chart2);
+
+            // Chart 3: Vibration
+            const ctx3 = document.getElementById('chart-vibration').getContext('2d');
+            const chart3 = new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+                    datasets: [{
+                        label: 'Vibration Freq (Hz)',
+                        data: [64, 62, 65, 63, 67, 61, 63, 64, 62, 63],
+                        borderColor: '#EA580C',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            charts.push(chart3);
+
+            // Chart 4: Stress
+            const ctx4 = document.getElementById('chart-stress').getContext('2d');
+            const chart4 = new Chart(ctx4, {
+                type: 'line',
+                data: {
+                    labels: ['Worker 1', 'Worker 2', 'Worker 3', 'Worker 4'],
+                    datasets: [{
+                        label: 'Cognitive Load HRV',
+                        data: [35, 42, 28, 55],
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            charts.push(chart4);
+        }
+        window.addEventListener('DOMContentLoaded', initCharts);
+
+        // File Exporters (generating actual files download)
+        function exportData(format) {
+            const timestamp = new Date().toISOString().replace(/T/, '_').replace(/\..+/, '');
+            
+            if (format === 'csv') {
+                const csvContent = "data:text/csv;charset=utf-8," 
+                    + "Timestamp,Worker ID,Heart Rate,SpO2,Zone,Status\n"
+                    + "2026-07-01 15:43:09,John Doe,78,98%,Zone A,Compliant\n"
+                    + "2026-07-01 15:43:09,Sarah V.,82,97%,Zone C,Compliant\n"
+                    + "2026-07-01 15:43:09,Mike T.,91,96%,Zone B,Warning\n";
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `sentinel_x_telemetry_${timestamp}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else if (format === 'xlsx') {
+                // Simulating basic XML Excel
+                const xlsContent = "data:application/vnd.ms-excel;charset=utf-8,"
+                    + "<table><tr><th>Metric</th><th>Value</th></tr>"
+                    + "<tr><td>Safety Rating</td><td>99.2%</td></tr>"
+                    + "<tr><td>Edge Nodes</td><td>1024</td></tr></table>";
+                
+                const encodedUri = encodeURI(xlsContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `sentinel_x_report_${timestamp}.xls`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else if (format === 'pdf') {
+                // PDF print layout preview trigger
+                window.print();
+            }
+        }
+
+        // ==========================================
+        // Swagger OpenAPI Try it out Playground
+        // ==========================================
+        function tryApi(endpoint) {
+            const resBox = document.getElementById(`api-res-${endpoint}`);
+            resBox.classList.remove('hidden');
+
+            const now = new Date().toISOString();
+
+            if (endpoint === 'alerts') {
+                resBox.innerHTML = `
+<pre class="text-emerald-400">Response (200 OK):</pre>
+<pre class="text-slate-300 mt-2">[
+  {
+    "id": "alert-942861",
+    "timestamp": "${now}",
+    "severity": "WARNING",
+    "trigger_source": "YOLOv11_CCTV_02",
+    "details": "Compressor area border breach in Zone B."
+  }
+]</pre>`;
+            } else if (endpoint === 'sensors') {
+                resBox.innerHTML = `
+<pre class="text-emerald-400">Response (200 OK):</pre>
+<pre class="text-slate-300 mt-2">{
+  "nodes_synced": 1024,
+  "gas_levels": {
+    "co2": 380,
+    "unit": "ppm"
+  },
+  "boiler_b_temperature": {
+    "val": 74.2,
+    "unit": "celsius"
+  }
+}</pre>`;
+            } else if (endpoint === 'lockout') {
+                resBox.innerHTML = `
+<pre class="text-emerald-400">Response (200 OK):</pre>
+<pre class="text-slate-300 mt-2">{
+  "status": "success",
+  "locked_units": ["PLC_COMPRESSOR_B"],
+  "timestamp": "${now}",
+  "operator": "${currentName}"
+}</pre>`;
+            }
+        }
+
+        // ==========================================
+        // Vitals Smartwatch SOS & Phone logic
+        // ==========================================
+        // Smartwatch heart rate fluctuation
+        setInterval(() => {
+            const hrLabel = document.getElementById('watch-hr');
+            if (hrLabel) {
+                const current = parseInt(hrLabel.innerText);
+                const drift = Math.random() > 0.5 ? 1 : -1;
+                hrLabel.innerText = Math.max(60, Math.min(120, current + drift));
+            }
+        }, 3000);
+
+        function triggerWatchSos() {
+            const hh = String(new Date().getHours()).padStart(2, '0');
+            const mm = String(new Date().getMinutes()).padStart(2, '0');
+            const ss = String(new Date().getSeconds()).padStart(2, '0');
+            
+            // Trigger siren and Evac pathing
+            triggerSimulation('evacuation');
+
+            addAlert({
+                title: "WORKER SOS ACTIVE",
+                desc: "Worker John Doe triggered emergency SOS panic switch from wearable watch.",
+                type: "critical",
+                time: `${hh}:${mm}:${ss}`
+            });
+        }
+
+        function triggerPhoneWarning(title, desc) {
+            const card = document.getElementById('phone-alert-card');
+            const icon = document.getElementById('phone-alert-icon');
+            const t = document.getElementById('phone-alert-title');
+            const d = document.getElementById('phone-alert-desc');
+
+            card.className = "bg-rose-500/20 border border-rose-500/30 rounded-xl p-3 text-center space-y-1.5 transition-all duration-300 animate-pulse";
+            icon.className = "w-6 h-6 text-rose-500 mx-auto";
+            icon.setAttribute('data-lucide', 'triangle-alert');
+            t.innerText = title;
+            t.className = "text-[11px] font-bold text-rose-400";
+            d.innerText = desc;
+
+            lucide.createIcons();
+        }
+
+        function resetPhoneAlert() {
+            const card = document.getElementById('phone-alert-card');
+            const icon = document.getElementById('phone-alert-icon');
+            const t = document.getElementById('phone-alert-title');
+            const d = document.getElementById('phone-alert-desc');
+
+            card.className = "bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center space-y-1.5 transition-all duration-300";
+            icon.className = "w-6 h-6 text-emerald-400 mx-auto";
+            icon.setAttribute('data-lucide', 'shield-check');
+            t.innerText = "Zone Safety Active";
+            t.className = "text-[11px] font-bold text-white";
+            d.innerText = "Your location (Zone A) is verified safe. AI guardian online.";
+
+            lucide.createIcons();
+        }
+
+        function saveSettings() {
+            alert("System configuration thresholds successfully uploaded to edge Fog controllers.");
+        }
+    </script>
+</body>
+</html>
