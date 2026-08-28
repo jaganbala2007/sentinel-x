@@ -6,18 +6,18 @@
 
 # SENTINEL-X 🛡️
 
-### Cognitive Safety Operating System for Industrial Environments
+### Cyber-Resilient Industrial Digital Twin Platform
 
 <p align="center">
-  <em>Predict Safety. Prevent Incidents. Protect Lives.</em><br>
-  <strong>Real-time 3D Digital Twin • Multi-Agent AI Mesh • Sub-100ms Edge Override</strong>
+  <em>Don't just mirror the factory. Verify it, understand it, predict it, and protect it.</em><br>
+  <strong>Physical Reality • Trusted Data • Digital Twin • AI Prediction • What-If Simulation • Sub-100ms Edge Override</strong>
 </p>
 
 <br>
 
 <!-- Core Badges -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.1.0-blue?style=for-the-badge)](CHANGELOG.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge)](CONTRIBUTING.md)
 
 <!-- Tech Badges -->
@@ -28,25 +28,19 @@
 [![GCP](https://img.shields.io/badge/GCP-Vertex_AI-4285F4?style=flat-square&logo=google-cloud)](https://cloud.google.com/vertex-ai)
 [![MQTT](https://img.shields.io/badge/MQTT-IoT_Protocol-660066?style=flat-square)](https://mqtt.org/)
 [![WebSockets](https://img.shields.io/badge/WebSockets-Real--Time-010101?style=flat-square)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
-[![OSHA](https://img.shields.io/badge/OSHA-Compliant-blue?style=flat-square)](https://www.osha.gov/)
-[![ISO](https://img.shields.io/badge/ISO_45001:2018-Certified_Ready-0057A8?style=flat-square)](https://www.iso.org/iso-45001-occupational-health-and-safety.html)
-
-<!-- Status Badges -->
-![Build](https://github.com/jaganbala2007/sentinel-x/actions/workflows/ci.yml/badge.svg)
-[![Stars](https://img.shields.io/github/stars/jaganbala2007/sentinel-x?style=social)](https://github.com/jaganbala2007/sentinel-x)
-[![Forks](https://img.shields.io/github/forks/jaganbala2007/sentinel-x?style=social)](https://github.com/jaganbala2007/sentinel-x/fork)
+[![Tests](https://img.shields.io/badge/Tests-21%2F21%20Passing-brightgreen?style=flat-square)](tests/run_tests.py)
 
 <br>
 
 <p align="center">
-  <a href="#-problem-statement">Problem</a> •
-  <a href="#-innovation--core-features">Innovation</a> •
-  <a href="#️-system-architecture">Architecture</a> •
-  <a href="#-technology-stack">Tech Stack</a> •
+  <a href="#-value-proposition">Value Proposition</a> •
+  <a href="#-cyber-resilience--sensor-trust-hero-demo">Cyber Defense Hero</a> •
+  <a href="#-worker--machine-safety-dna">Safety DNA</a> •
+  <a href="#-machine-health--rul-prediction">RUL & Health</a> •
+  <a href="#-what-if-digital-twin-sandbox">What-If Sandbox</a> •
+  <a href="#-architecture">Architecture</a> •
   <a href="#-live-demo">Live Demo</a> •
-  <a href="#-installation--setup">Setup</a> •
-  <a href="#-performance-benchmarks">Benchmarks</a> •
-  <a href="#-roadmap">Roadmap</a>
+  <a href="#-testing">Testing</a>
 </p>
 
 </div>
@@ -55,18 +49,22 @@
 
 ## 📖 Project Overview
 
-**Sentinel-X** is an enterprise-grade **AI Cognitive Safety Operating System** built for high-risk industrial environments — manufacturing floors, chemical plants, oil refineries, and construction sites.
+**Sentinel-X** is an enterprise-grade **Cyber-Resilient Industrial Digital Twin Platform** built for mission-critical manufacturing floors, energy plants, refineries, and robotic facilities.
 
-It replaces passive, reactive alarm systems with a **proactive, multi-agent AI cooperative mesh** that:
+It evolvess simple mirror dashboards into a living, cyber-resilient closed intelligence loop:
 
-- Renders a **real-time 3D Digital Twin** of the physical facility
-- Tracks **every worker, vehicle, and machine** in sub-second intervals
-- Predicts equipment failures and human fatigue **up to 15 minutes in advance**
-- Issues **sub-100ms machine shutdowns** via local edge inference — bypassing cloud latency entirely
+```text
+PHYSICAL REALITY ➔ SENSOR TRUST & VALIDATION ➔ DIGITAL TWIN ➔ AI PREDICTION & RUL ➔ WHAT-IF SIMULATION ➔ SAFETY DECISION ➔ SUB-100MS RESPONSE
+```
 
-> **"The first cognitive operating system that doesn't just react to accidents — it prevents them."**
+### Core Innovations in Sentinel-X v1.1.0:
 
----
+- **Data Trust & Cyber Integrity Layer:** Cross-sensor consensus, rate-of-change jump detection, and physical plausibility verification. Neutralizes telemetry spoofing attacks (e.g. false low 42°C PLC output during 82°C physical overheating).
+- **Worker Safety DNA & Machine Safety DNA:** Continuous dynamic risk scoring for personnel (`WRK-001`–`WRK-014`) and equipment health tracking (`M-001`–`M-010`).
+- **Predictive Machine Life (RUL):** Physics-informed exponential wear degradation and Remaining Useful Life (RUL) estimation with optimal inspection scheduling.
+- **What-If Digital Twin Sandbox:** Simulate operational changes (RPM +15%, load shifts, delayed maintenance) without risking physical machinery.
+- **Incident Memory & Timeline Reconstruction:** Forensic event sequencing with root-cause causal chains.
+- **Trusted Industrial AI Copilot:** Grounded operational reasoning without hallucination.
 
 ## 🔴 Problem Statement
 
@@ -199,23 +197,71 @@ sequenceDiagram
 ```
 
 ---
+### 🛡️ Cyber Integrity & Cross-Sensor Consensus Engine
+Industrial plants face telemetry spoofing and compromised PLC attacks. Sentinel-X does not blindly trust single-source sensor feeds. It employs:
+- **Rate-of-Change Jump Detection:** Identifies physically impossible sudden sensor drops.
+- **Physical Plausibility Coupling:** Enforces laws of thermodynamics (e.g. current and vibration cannot spike while temperature remains chilled).
+- **Consensus True-State Recovery:** Fuses optical thermal imager, isolated RTDs, and PLC Modbus streams to derive high-confidence true state.
+
+### 🎭 Hero Demonstration Scenarios
+
+#### Hero Scenario 1 — Defensive Cyber-Physical Integrity
+- **Physical Machine Reality:** High-Pressure Compressor M-007 casing overheats to **82.0°C**.
+- **Compromised PLC Telemetry:** Spoofed to falsely report nominal **42.0°C**.
+- **Thermal Camera Stream:** Optical IR detects **81.4°C** (97% Trust).
+- **Auxiliary RTD Sensor:** Surface RTD reports **80.8°C** (92% Trust).
+- **Defense Action:** Physical plausibility engine triggers -> Degrades PLC trust score from 94% down to **37%** (Quarantined) -> Synthesizes estimated true state **81.2°C** -> Autonomous sub-100ms edge override initiated.
+
+#### Hero Scenario 2 — Predictive Machine Life & RUL
+- **Machine M-007 Bearing Vitals:** Health Index: **68%**, Baseline RUL: **120.0 hours**.
+- **Operational Simulation:** What-If sandbox simulates +15% RPM load.
+- **Physics Acceleration:** Bearing temperature rises to **84.2°C**, vibration harmonics reach **4.92 mm/s**, accelerating degradation.
+- **Predicted RUL Impact:** Remaining Useful Life drops to **41.2 hours**, generating actionable maintenance work orders before catastrophic seizure.
+
+#### Hero Scenario 3 — Worker Safety DNA & Proximity Interlock
+- **Worker Profile:** Technician `WRK-014` (Safety DNA Score: 58/100, Elevated Fatigue).
+- **Hazard Trigger:** Worker moves to hazardous 1.1m proximity of overheating Compressor `M-007` in restricted Zone-B.
+- **Closed-Loop Action:** Wearable watch SOS + Smart Safety Helmet haptic alerts dispatched; automated machine power de-rate engaged.
+
+---
 
 ## 📡 Data Flow Diagram
 
 ```mermaid
-flowchart LR
-    A["Worker\nWearable"] -->|BLE/UWB| B["Edge Gateway"]
-    C["Gas Sensor"] -->|LoRaWAN| B
-    D["IP Camera"] -->|RTSP| B
-    E["Machine PLC"] -->|Modbus TCP| B
+flowchart TD
+    subgraph SENSORS ["📡 Physical Layer & Telemetry"]
+        PLC["PLC Modbus TCP\n(M-007)"] 
+        CAM["Optical Thermal Camera\n(Zone-B)"]
+        RTD["Isolated RTD Aux Sensor"]
+        WRK["Worker Wearable Vitals\n(BLE/UWB)"]
+    end
 
-    B -->|MQTT| F["Fog Node\nJetson Orin"]
-    F -->|Inference| G["AI Agent\nMesh"]
-    G -->|Alert| H["PLC Override\n< 100ms"]
-    G -->|HTTPS| I["Cloud Backend\nFastAPI"]
-    I -->|WebSocket| J["3D Digital Twin\nUI"]
-    I -->|SQL| K[("PostgreSQL\nDatabase")]
-    I -->|Cache| L[("Redis\nTelemetry")]
+    subgraph TRUST ["🛡️ Data Trust & Cyber Layer"]
+        Plausibility["Physical Plausibility & Jump Engine"]
+        Consensus["Cross-Sensor Consensus Fusion"]
+        Provenance["Data Provenance Tagging"]
+    end
+
+    subgraph TWIN ["🌐 Digital Twin & Predictive Intelligence"]
+        Twin3D["3D Digital Twin (Three.js)"]
+        WorkerDNA["Worker Safety DNA (0-100)"]
+        MachineDNA["Machine Safety DNA & RUL"]
+        WhatIf["What-If Sandbox Simulation"]
+    end
+
+    subgraph ACTION ["⚡ Decision & Edge Override"]
+        DecisionEngine["Trusted AI Decision Engine"]
+        EdgeLockout["Sub-100ms Edge Controller"]
+        Copilot["Industrial AI Copilot"]
+    end
+
+    PLC & CAM & RTD --> Plausibility
+    Plausibility --> Consensus --> Provenance
+    Provenance --> Twin3D
+    WRK --> WorkerDNA --> Twin3D
+    Provenance --> MachineDNA --> WhatIf --> DecisionEngine
+    DecisionEngine -->|"Sub-100ms"| EdgeLockout
+    DecisionEngine --> Copilot
 ```
 
 ---

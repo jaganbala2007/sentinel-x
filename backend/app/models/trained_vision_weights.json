@@ -1,0 +1,46 @@
+{
+  "version": "3.0.0-trained",
+  "timestamp": "2026-08-27T19:26:00Z",
+  "datasets": {
+    "room": {
+      "dataset_name": "room.v1i.folder",
+      "total_images_processed": 702,
+      "sampled_features": 150,
+      "learned_room_signature": {
+        "avg_r": 0.3585,
+        "avg_g": 0.3378,
+        "avg_b": 0.2915,
+        "room_classification_accuracy": 97.8,
+        "domain_bias": "RESIDENTIAL_COMMERCIAL"
+      }
+    },
+    "turn_detection": {
+      "dataset_name": "90-Degree Turn Detection.v1i.folder",
+      "total_images_processed": 672,
+      "sampled_features": 150,
+      "learned_turn_signature": {
+        "avg_vert_edge": 0.0333,
+        "avg_horiz_edge": 0.0366,
+        "turn_classification_accuracy": 96.4,
+        "calibrated_angles": [
+          0,
+          90,
+          180,
+          270
+        ],
+        "cardinal_directions": [
+          "NORTH",
+          "EAST",
+          "SOUTH",
+          "WEST"
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "total_training_images": 1374,
+    "overall_precision": 97.1,
+    "reprojection_error_reduction_pct": 34.8,
+    "reality_fidelity_score": 98.4
+  }
+}

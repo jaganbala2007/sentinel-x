@@ -12,15 +12,23 @@ Exposes endpoints for:
   - WebSocket streams for live cockpit UI updates
 
 Author: Sentinel-X Engineering Team
-Version: 1.0.0
+Version: 1.1.0
 License: MIT
 """
+
+import sys
+import os
+
+# Ensure 'backend' directory is on sys.path so 'app.*' imports work from any working directory
+_backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _backend_dir not in sys.path:
+    sys.path.insert(0, _backend_dir)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.routers import alerts, sensors, machine
+from app.routers import alerts, sensors, machine, digital_twins, digital_twins_v3, cyber_twins_v3, telemetry_mode
 from app.core.config import settings
 
 # ---------------------------------------------------------------------------
@@ -28,13 +36,14 @@ from app.core.config import settings
 # ---------------------------------------------------------------------------
 
 app = FastAPI(
-    title="Sentinel-X Core API",
+    title="Sentinel-X Cyber-Resilient Industrial Digital Twin API",
     description=(
-        "Enterprise REST + WebSocket API for the Sentinel-X Cognitive Safety "
-        "Operating System. Provides real-time telemetry ingestion, alert "
-        "distribution, PLC machine lockout, and Digital Twin state management."
+        "Enterprise REST + WebSocket API for the Sentinel-X Cyber-Resilient "
+        "Industrial Digital Twin Platform. Provides real-time telemetry ingestion, "
+        "sensor trust scoring, cyber integrity defense simulation, Worker/Machine "
+        "Safety DNA, predictive machine life (RUL), What-If simulations, and AI Copilot."
     ),
-    version="1.0.0",
+    version="1.1.0",
     contact={
         "name": "Sentinel-X Engineering",
         "url": "https://github.com/jaganbala2007/sentinel-x",
@@ -83,9 +92,43 @@ app.include_router(
     tags=["Machine Control"],
 )
 
+app.include_router(
+    digital_twins.router,
+    prefix="/api/v1/digital-twins",
+    tags=["Digital Twins & Reconstruction v1"],
+)
+
+app.include_router(
+    digital_twins_v3.router,
+    prefix="/api/v3/digital-twins",
+    tags=["Digital Twins & Reconstruction v3"],
+)
+
+app.include_router(
+    cyber_twins_v3.router,
+    prefix="/api/v3",
+    tags=["Cyber-Resilient Industrial Intelligence v3"],
+)
+
+app.include_router(
+    telemetry_mode.router,
+    prefix="/api/v1",
+    tags=["Online / Offline Telemetry Mode & Simulation Engine"],
+)
+
 # ---------------------------------------------------------------------------
 # Health & Meta Endpoints
 # ---------------------------------------------------------------------------
+# Health & Dashboard Endpoints
+# ---------------------------------------------------------------------------
+
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+
+_frontend_src_dir = os.path.join(os.path.dirname(_backend_dir), "frontend", "src")
+
+
+_assets_dir = os.path.join(os.path.dirname(_backend_dir), "assets")
 
 
 @app.get("/", tags=["Meta"], summary="API Root")
@@ -93,10 +136,38 @@ async def root() -> dict:
     """Returns API metadata and health confirmation."""
     return {
         "service": "Sentinel-X Core API",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "status": "operational",
         "docs": "/docs",
+        "dashboard": "/dashboard",
     }
+
+
+@app.get("/dashboard", tags=["Dashboard"], summary="Open 3D Cockpit Dashboard")
+@app.get("/app", tags=["Dashboard"], summary="Open 3D Cockpit Dashboard")
+async def serve_dashboard():
+    """Serves the 3D Digital Twin Cockpit UI application."""
+    app_html = os.path.join(_frontend_src_dir, "app.html")
+    if os.path.exists(app_html):
+        return FileResponse(app_html)
+    return HTMLResponse("<h1>Cockpit Dashboard app.html not found</h1>", status_code=404)
+
+
+@app.get("/twin-engine.js", summary="Serve twin-engine.js")
+async def serve_twin_engine():
+    """Serves the client-side 3D Digital Twin & Reconstruction engine."""
+    fpath = os.path.join(_frontend_src_dir, "twin-engine.js")
+    if os.path.exists(fpath):
+        return FileResponse(fpath, media_type="application/javascript")
+    return HTMLResponse("Not Found", status_code=404)
+
+
+if os.path.exists(_frontend_src_dir):
+    app.mount("/static", StaticFiles(directory=_frontend_src_dir), name="static")
+    app.mount("/src", StaticFiles(directory=_frontend_src_dir), name="src")
+
+if os.path.exists(_assets_dir):
+    app.mount("/assets", StaticFiles(directory=_assets_dir), name="assets")
 
 
 @app.get("/health", tags=["Meta"], summary="Health Check")

@@ -32,6 +32,10 @@ $mimeTypes = @{
     ".svg"  = "image/svg+xml"
     ".ico"  = "image/x-icon"
     ".pdf"  = "application/pdf"
+    ".glb"  = "model/gltf-binary"
+    ".gltf" = "model/gltf+json"
+    ".bin"  = "application/octet-stream"
+    ".ply"  = "application/octet-stream"
 }
 
 # Resolve project root (parent's parent of this scripts folder, or fallback to current dir)

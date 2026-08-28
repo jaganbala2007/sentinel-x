@@ -260,3 +260,68 @@ async def test_machine_restore(client):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "restored"
+
+
+# ---------------------------------------------------------------------------
+# Digital Twin & Reconstruction Tests
+# ---------------------------------------------------------------------------
+
+@pytest.mark.anyio
+async def test_list_digital_twins(client):
+    """GET /api/v1/digital-twins should return twins list."""
+    response = await client.get("/api/v1/digital-twins")
+    assert response.status_code == 200
+    data = response.json()
+    assert "total" in data
+    assert "twins" in data
+    assert isinstance(data["twins"], list)
+
+
+@pytest.mark.anyio
+async def test_validate_and_reconstruct_workflow(client):
+    """POST /validate and /reconstruct should handle 3-4 images and create job."""
+    import base64
+    import io
+    from PIL import Image, ImageDraw
+
+    # Generate 3 base64 encoded test images with visual features
+    b64_images = []
+    for i in range(3):
+        img = Image.new('RGB', (320, 240), color=(25 + i*20, 35 + i*10, 60))
+        d = ImageDraw.Draw(img)
+        d.rectangle([30 + i*10, 40, 180 + i*20, 160], fill=(220, 140, 50), outline=(255, 255, 255))
+        d.line([(10, 10), (300, 200)], fill=(0, 255, 255), width=2)
+        d.text((40, 50), f'View {i+1}', fill=(255, 255, 255))
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG")
+        b64_str = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
+        b64_images.append(b64_str)
+
+    # 1. Validation test
+    val_res = await client.post("/api/v1/digital-twins/validate", json={"images": b64_images})
+    assert val_res.status_code == 200
+    val_data = val_res.json()
+    assert val_data["valid"] is True
+    assert "image_reports" in val_data
+
+    # 2. Reconstruction Job initiation
+    rec_res = await client.post(
+        "/api/v1/digital-twins/reconstruct",
+        json={
+            "twin_name": "Automated PyTest Workshop Twin",
+            "reference_scale_meters": 1.0,
+            "reference_object_type": "Standard Doorway (0.9m)",
+            "images": b64_images
+        }
+    )
+    assert rec_res.status_code == 200
+    job = rec_res.json()
+    assert "job_id" in job
+    assert job["state"] == "CREATED"
+    job_id = job["job_id"]
+
+    # 3. Query job state
+    status_res = await client.get(f"/api/v1/digital-twins/jobs/{job_id}")
+    assert status_res.status_code == 200
+    assert "state" in status_res.json()
+
