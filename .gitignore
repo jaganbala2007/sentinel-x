@@ -7,6 +7,16 @@
 college id/
 college*/
 
+# Temporary / Scratch
+scratch/
+.agents/
+sentinel-x-frontend/
+*.zip
+*.tar.gz
+*.7z
+*.bak
+*.tmp
+
 # ------------------------------------------------------------
 # Large Binary / Media Files (tracked via Git LFS or excluded)
 # ------------------------------------------------------------

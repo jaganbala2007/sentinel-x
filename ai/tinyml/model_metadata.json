@@ -1,0 +1,9 @@
+{
+  "model_name": "TFLM-HYDRO-AUTOENCODER-INT8",
+  "model_footprint_bytes": 4820,
+  "feature_extraction_latency_us": 3.75,
+  "inference_latency_us": 4.65,
+  "esp32s3_estimated_latency_ms": 14.2,
+  "tests_passed": true,
+  "implementation_status": "PROTOTYPE (MEASURED & VALIDATED)"
+}

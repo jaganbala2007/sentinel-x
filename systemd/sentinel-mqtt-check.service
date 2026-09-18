@@ -1,0 +1,7 @@
+[Unit]
+Description=Sentinel-X Mosquitto MQTT Health Checker
+After=mosquitto.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/mosquitto_pub -h 127.0.0.1 -p 1883 -t "sentinel/health" -m "HEALTH_CHECK"

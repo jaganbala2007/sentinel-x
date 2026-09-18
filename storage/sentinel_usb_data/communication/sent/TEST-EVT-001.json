@@ -1,0 +1,11 @@
+{
+  "event_id": "TEST-EVT-001",
+  "source": "TEST",
+  "environment": "INDUSTRIAL",
+  "hazard": "MECHANICAL",
+  "risk_score": 75.0,
+  "priority": "HIGH",
+  "payload": {
+    "test": true
+  }
+}

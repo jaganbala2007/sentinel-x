@@ -1,0 +1,6 @@
+{
+  "event_id": "EVT-TEST-SF",
+  "source": "RPI5",
+  "hazard": "MECHANICAL",
+  "risk_score": 65.0
+}

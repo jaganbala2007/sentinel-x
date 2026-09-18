@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINEL-X | Authentication Gate</title>
+    <title>SENTINEL-X | Edge Disaster Security Gate | SIH 2026 PS-26223</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -82,28 +82,28 @@
                     <i data-lucide="shield-alert" class="w-6 h-6 text-white"></i>
                 </div>
                 <h2 class="text-2xl font-extrabold tracking-wider text-white">SENTINEL-X SECURITY GATE</h2>
-                <p class="text-xs uppercase tracking-widest text-cyan-400 font-bold">Cognitive Authentication Protocols</p>
+                <p class="text-xs uppercase tracking-widest text-cyan-400 font-bold">EDGE DISASTER & SAFETY AUTHENTICATION GATEWAY</p>
             </div>
 
             <!-- Login View -->
             <div id="login-view" class="pt-6 space-y-6">
                 <!-- Role Selector -->
                 <div class="space-y-2">
-                    <label class="text-xs uppercase tracking-wider font-bold text-slate-400">Select Security Profile Role</label>
+                    <label class="text-xs uppercase tracking-wider font-bold text-slate-300">Select Security Profile Role</label>
                     <div class="grid grid-cols-2 gap-3" id="role-selector">
-                        <button onclick="selectRole('Admin', 'admin@sentinel.x', '094821')" class="role-btn px-4 py-3 rounded-xl border border-white/5 bg-white/5 text-slate-300 hover:border-blue-500/30 hover:bg-blue-500/5 hover:text-white transition-all text-xs font-semibold flex items-center gap-2">
+                        <button onclick="selectRole('Admin', 'admin@sentinel.x', '094821')" class="role-btn px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-slate-200 hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-white transition-all text-xs font-semibold flex items-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                             <i data-lucide="user-cog" class="w-4 h-4 text-blue-400"></i>
                             <span>Admin</span>
                         </button>
-                        <button onclick="selectRole('Supervisor', 'supervisor@sentinel.x', '384912')" class="role-btn px-4 py-3 rounded-xl border border-white/5 bg-white/5 text-slate-300 hover:border-blue-500/30 hover:bg-blue-500/5 hover:text-white transition-all text-xs font-semibold flex items-center gap-2">
+                        <button onclick="selectRole('Supervisor', 'supervisor@sentinel.x', '384912')" class="role-btn px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-slate-200 hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-white transition-all text-xs font-semibold flex items-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                             <i data-lucide="users" class="w-4 h-4 text-cyan-400"></i>
                             <span>Supervisor</span>
                         </button>
-                        <button onclick="selectRole('Safety Officer', 'officer@sentinel.x', '849127')" class="role-btn px-4 py-3 rounded-xl border border-white/5 bg-white/5 text-slate-300 hover:border-blue-500/30 hover:bg-blue-500/5 hover:text-white transition-all text-xs font-semibold flex items-center gap-2">
+                        <button onclick="selectRole('Safety Officer', 'officer@sentinel.x', '849127')" class="role-btn px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-slate-200 hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-white transition-all text-xs font-semibold flex items-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                             <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
                             <span>Safety Officer</span>
                         </button>
-                        <button onclick="selectRole('Worker', 'worker@sentinel.x', '201948')" class="role-btn px-4 py-3 rounded-xl border border-white/5 bg-white/5 text-slate-300 hover:border-blue-500/30 hover:bg-blue-500/5 hover:text-white transition-all text-xs font-semibold flex items-center gap-2">
+                        <button onclick="selectRole('Worker', 'worker@sentinel.x', '201948')" class="role-btn px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-slate-200 hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-white transition-all text-xs font-semibold flex items-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                             <i data-lucide="hard-hat" class="w-4 h-4 text-orange-400"></i>
                             <span>Worker</span>
                         </button>
@@ -113,26 +113,26 @@
                 <!-- Input fields -->
                 <form id="credentials-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
                     <div class="space-y-2">
-                        <label for="email" class="text-xs uppercase tracking-wider font-bold text-slate-400">Security Email Address</label>
+                        <label for="email" class="text-xs uppercase tracking-wider font-bold text-slate-300">Security Email Address</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
                                 <i data-lucide="mail" class="w-4.5 h-4.5"></i>
                             </span>
-                            <input type="email" id="email" required placeholder="name@sentinel.x" class="w-full bg-brand-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all font-mono">
+                            <input type="email" id="email" required placeholder="name@sentinel.x" class="w-full bg-brand-black/60 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all font-mono">
                         </div>
                     </div>
 
                     <div class="space-y-2">
-                        <label for="password" class="text-xs uppercase tracking-wider font-bold text-slate-400">Security Authorization Key</label>
+                        <label for="password" class="text-xs uppercase tracking-wider font-bold text-slate-300">Security Authorization Key</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
                                 <i data-lucide="key-round" class="w-4.5 h-4.5"></i>
                             </span>
-                            <input type="password" id="password" required placeholder="••••••••••••" value="demo-access-2026" class="w-full bg-brand-black/40 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all font-mono">
+                            <input type="password" id="password" required placeholder="••••••••••••" value="demo-access-2026" class="w-full bg-brand-black/60 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all font-mono">
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-4 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 border border-white/10 flex items-center justify-center gap-2">
+                    <button type="submit" class="w-full py-4 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 border border-white/10 flex items-center justify-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                         <i data-lucide="log-in" class="w-4.5 h-4.5"></i>
                         <span>Initiate Secure Authentication</span>
                     </button>
@@ -141,11 +141,11 @@
 
             <!-- OTP Verification View -->
             <div id="otp-view" class="pt-6 space-y-6 hidden">
-                <div class="text-center space-y-2 bg-blue-500/5 border border-blue-500/10 rounded-xl p-4">
-                    <p class="text-sm text-slate-300 leading-normal">
+                <div class="text-center space-y-2 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                    <p class="text-sm text-slate-200 leading-normal">
                         Security Token sent to <span id="sent-email" class="font-mono text-cyan-400">email</span>
                     </p>
-                    <p class="text-xs text-slate-400 font-mono">
+                    <p class="text-xs text-slate-300 font-mono">
                         Enter Code: <span id="hint-code" class="font-bold text-emerald-400">000000</span> (Pre-Filled)
                     </p>
                 </div>
@@ -153,36 +153,78 @@
                 <div class="space-y-4">
                     <!-- OTP Boxes -->
                     <div class="flex justify-between gap-2 max-w-xs mx-auto" id="otp-inputs">
-                        <input type="text" maxlength="1" oninput="moveNext(this, 1)" class="otp-box w-12 h-12 bg-brand-black/40 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30">
-                        <input type="text" maxlength="1" oninput="moveNext(this, 2)" class="otp-box w-12 h-12 bg-brand-black/40 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30">
-                        <input type="text" maxlength="1" oninput="moveNext(this, 3)" class="otp-box w-12 h-12 bg-brand-black/40 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30">
-                        <input type="text" maxlength="1" oninput="moveNext(this, 4)" class="otp-box w-12 h-12 bg-brand-black/40 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30">
-                        <input type="text" maxlength="1" oninput="moveNext(this, 5)" class="otp-box w-12 h-12 bg-brand-black/40 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30">
-                        <input type="text" maxlength="1" oninput="moveNext(this, 6)" class="otp-box w-12 h-12 bg-brand-black/40 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30">
+                        <input type="text" maxlength="1" aria-label="Digit 1" oninput="moveNext(this, 1)" class="otp-box w-12 h-12 bg-brand-black/60 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50">
+                        <input type="text" maxlength="1" aria-label="Digit 2" oninput="moveNext(this, 2)" class="otp-box w-12 h-12 bg-brand-black/60 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50">
+                        <input type="text" maxlength="1" aria-label="Digit 3" oninput="moveNext(this, 3)" class="otp-box w-12 h-12 bg-brand-black/60 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50">
+                        <input type="text" maxlength="1" aria-label="Digit 4" oninput="moveNext(this, 4)" class="otp-box w-12 h-12 bg-brand-black/60 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50">
+                        <input type="text" maxlength="1" aria-label="Digit 5" oninput="moveNext(this, 5)" class="otp-box w-12 h-12 bg-brand-black/60 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50">
+                        <input type="text" maxlength="1" aria-label="Digit 6" oninput="moveNext(this, 6)" class="otp-box w-12 h-12 bg-brand-black/60 border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50">
                     </div>
 
-                    <button onclick="verifyOtp()" class="w-full py-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 border border-white/10 flex items-center justify-center gap-2">
+                    <button onclick="verifyOtp()" class="w-full py-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 border border-white/10 flex items-center justify-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
                         <i data-lucide="shield-check" class="w-4.5 h-4.5"></i>
                         <span>Verify Security Token</span>
                     </button>
 
-                    <div class="flex items-center justify-between text-xs text-slate-400 px-2 font-mono">
+                    <div class="flex items-center justify-between text-xs text-slate-300 px-2 font-mono" aria-live="polite">
                         <div class="flex items-center gap-1.5">
                             <i data-lucide="clock" class="w-3.5 h-3.5"></i>
                             <span>Resend in <span id="timer" class="font-bold text-blue-400">60</span>s</span>
                         </div>
-                        <button onclick="resendOtp()" id="resend-btn" disabled class="text-slate-500 hover:text-blue-400 transition-colors disabled:cursor-not-allowed">Resend OTP</button>
+                        <button onclick="resendOtp()" id="resend-btn" disabled class="text-slate-400 hover:text-blue-400 transition-colors disabled:cursor-not-allowed disabled:opacity-50">Resend OTP</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Loading Spinner view -->
-            <div id="loading-view" class="pt-12 pb-6 space-y-6 text-center hidden">
-                <div class="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
-                <div class="space-y-1">
-                    <div class="text-sm font-bold text-white uppercase tracking-wider" id="loading-text">Synchronizing Cognitive State</div>
-                    <p class="text-xs text-slate-400 font-mono">Connecting to local Fog server on port 8000...</p>
+            <!-- Loading & Access Granted HUD View (Section 9 & 32) -->
+            <div id="loading-view" class="pt-6 pb-4 space-y-5 text-center hidden">
+                <div class="inline-flex w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 items-center justify-center text-emerald-400 mx-auto">
+                    <i data-lucide="shield-check" class="w-7 h-7"></i>
                 </div>
+
+                <div class="space-y-1">
+                    <div class="text-xs font-mono font-bold tracking-widest text-emerald-400 uppercase">AUTHENTICATION VERIFIED</div>
+                    <h3 class="text-xl font-display font-extrabold text-white tracking-wider">FACILITY ACCESS GRANTED</h3>
+                    <p class="text-xs text-cyan-400 font-mono font-semibold">EDGE SESSION INITIALIZED &bull; DIGITAL TWIN SYNCHRONIZED</p>
+                </div>
+
+                <!-- Section 32 Technical Telemetry Checklist -->
+                <div class="p-4 rounded-xl bg-slate-900/90 border border-white/10 text-left font-mono text-xs space-y-2 max-w-sm mx-auto">
+                    <div class="flex justify-between items-center text-slate-300">
+                        <span class="text-slate-400">FACILITY:</span>
+                        <span class="font-bold text-white">INDUSTRIAL UNIT 01</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-300">
+                        <span class="text-slate-400">EDGE NETWORK:</span>
+                        <span class="text-emerald-400 font-bold">2/2 ONLINE</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-300">
+                        <span class="text-slate-400">TELEMETRY BUS:</span>
+                        <span class="text-cyan-400 font-bold">CONNECTED</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-300">
+                        <span class="text-slate-400">SAFETY ENGINE:</span>
+                        <span class="text-emerald-400 font-bold">ACTIVE</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-300">
+                        <span class="text-slate-400">DIGITAL TWIN:</span>
+                        <span class="text-emerald-400 font-bold">SYNCHRONIZED</span>
+                    </div>
+                </div>
+
+                <!-- Direct Access Button (Guaranteed Immediate Entry) -->
+                <button onclick="navigateToConsole()" class="w-full py-3.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20 border border-emerald-400/40 flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                    <span>ENTER OPERATIONAL CONTROL ROOM →</span>
+                </button>
+            </div>
+
+            <!-- Footer Return Link -->
+            <div class="pt-4 border-t border-white/5 text-center">
+                <a href="/" class="text-xs text-slate-400 hover:text-slate-200 transition-colors font-mono inline-flex items-center gap-1.5">
+                    <span>←</span>
+                    <span>Return to Public Website</span>
+                </a>
             </div>
 
         </div>
@@ -190,21 +232,28 @@
 
     <script>
         // Initialize Lucide Icons
-        lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
 
-        let currentRole = "";
-        let currentOtp = "";
+        let currentRole = "Admin";
+        let currentEmail = "admin@sentinel.x";
+        let currentOtp = "094821";
         let timerVal = 60;
         let countdownTimer;
 
         // Auto select Admin on launch
-        window.addEventListener('DOMContentLoaded', () => {
+        function initRoleOnLoad() {
             selectRole('Admin', 'admin@sentinel.x', '094821');
-        });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initRoleOnLoad);
+        } else {
+            initRoleOnLoad();
+        }
 
         // Handle Role selection
         function selectRole(role, email, mockOtp) {
             currentRole = role;
+            currentEmail = email;
             currentOtp = mockOtp;
             
             // Highlight button
@@ -221,62 +270,70 @@
             });
 
             // Prefill email
-            document.getElementById('email').value = email;
+            const emailInp = document.getElementById('email');
+            if (emailInp) emailInp.value = email;
         }
 
         // Handle Credentials Submit
         function handleLoginSubmit(event) {
-            event.preventDefault();
-            const email = document.getElementById('email').value;
+            if (event && event.preventDefault) event.preventDefault();
+            const emailInput = document.getElementById('email');
+            const email = emailInput && emailInput.value ? emailInput.value : currentEmail;
 
-            // Trigger Loading screen
+            // Render OTP screen directly with smooth transition
             document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('loading-view').classList.remove('hidden');
-            document.getElementById('loading-text').innerText = "Initiating Security Handshake";
+            document.getElementById('loading-view').classList.add('hidden');
+            const otpView = document.getElementById('otp-view');
+            if (otpView) otpView.classList.remove('hidden');
 
-            setTimeout(() => {
-                // Render OTP screen
-                document.getElementById('loading-view').classList.add('hidden');
-                document.getElementById('otp-view').classList.remove('hidden');
-                document.getElementById('sent-email').innerText = email;
-                document.getElementById('hint-code').innerText = currentOtp;
-                
-                // Pre-fill OTP boxes for easy demo login
-                const boxes = document.querySelectorAll('.otp-box');
-                const otpStr = String(currentOtp);
-                for(let i=0; i<6; i++) {
-                    boxes[i].value = otpStr[i];
-                }
-                
-                startTimer();
-            }, 1200);
+            const sentEmailEl = document.getElementById('sent-email');
+            if (sentEmailEl) sentEmailEl.innerText = email;
+
+            const hintCodeEl = document.getElementById('hint-code');
+            if (hintCodeEl) hintCodeEl.innerText = currentOtp || '094821';
+
+            // Pre-fill OTP boxes for easy demo login
+            const boxes = document.querySelectorAll('.otp-box');
+            const otpStr = String(currentOtp || '094821');
+            for (let i = 0; i < boxes.length && i < otpStr.length; i++) {
+                boxes[i].value = otpStr[i];
+            }
+
+            startTimer();
+            if (window.lucide) lucide.createIcons();
         }
 
         // OTP inputs auto-focus
         function moveNext(input, index) {
             if (input.value.length === 1 && index < 6) {
                 const nextInput = document.getElementById('otp-inputs').children[index];
-                nextInput.focus();
+                if (nextInput) nextInput.focus();
             }
         }
 
         // Start Countdown Timer
         function startTimer() {
             timerVal = 60;
-            document.getElementById('timer').innerText = timerVal;
-            document.getElementById('resend-btn').disabled = true;
-            document.getElementById('resend-btn').classList.remove('text-blue-400');
-            document.getElementById('resend-btn').classList.add('text-slate-500');
+            const timerEl = document.getElementById('timer');
+            if (timerEl) timerEl.innerText = timerVal;
+            const resendBtn = document.getElementById('resend-btn');
+            if (resendBtn) {
+                resendBtn.disabled = true;
+                resendBtn.classList.remove('text-blue-400');
+                resendBtn.classList.add('text-slate-500');
+            }
 
             clearInterval(countdownTimer);
             countdownTimer = setInterval(() => {
                 timerVal--;
-                document.getElementById('timer').innerText = timerVal;
+                if (timerEl) timerEl.innerText = timerVal;
                 if (timerVal <= 0) {
                     clearInterval(countdownTimer);
-                    document.getElementById('resend-btn').disabled = false;
-                    document.getElementById('resend-btn').classList.add('text-blue-400');
-                    document.getElementById('resend-btn').classList.remove('text-slate-500');
+                    if (resendBtn) {
+                        resendBtn.disabled = false;
+                        resendBtn.classList.add('text-blue-400');
+                        resendBtn.classList.remove('text-slate-500');
+                    }
                 }
             }, 1000);
         }
@@ -286,26 +343,44 @@
             startTimer();
         }
 
+        // Global function to navigate to Operational Console
+        function navigateToConsole() {
+            sessionStorage.setItem("authenticated", "true");
+            sessionStorage.setItem("userRole", currentRole || "Admin");
+            const emailEl = document.getElementById('email');
+            sessionStorage.setItem("userEmail", emailEl && emailEl.value ? emailEl.value : currentEmail);
+            sessionStorage.setItem("userName", (currentRole || "Admin") + " User");
+
+            const target = (window.location.protocol === 'file:' || window.location.pathname.endsWith('.html')) ? "app.html" : "/console";
+            window.location.href = target;
+        }
+
         // Verify OTP
         function verifyOtp() {
             const boxes = document.querySelectorAll('.otp-box');
             let code = "";
             boxes.forEach(box => { code += box.value; });
 
-            if (code === currentOtp || code === "942861" || code.length === 6) {
-                // Success
-                document.getElementById('otp-view').classList.add('hidden');
-                document.getElementById('loading-view').classList.remove('hidden');
-                document.getElementById('loading-text').innerText = "Verifying Safety Key & DNA Profile";
+            if (!code || code.length === 0) code = currentOtp || "094821";
 
+            if (code === currentOtp || code === "942861" || code === "094821" || code.length === 6) {
+                // Render Access Granted View
+                document.getElementById('otp-view').classList.add('hidden');
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('loading-view').classList.remove('hidden');
+                if (window.lucide) lucide.createIcons();
+
+                const pBar = document.getElementById('auth-progress');
+                if (pBar) {
+                    setTimeout(() => { pBar.style.width = '35%'; }, 80);
+                    setTimeout(() => { pBar.style.width = '75%'; }, 250);
+                    setTimeout(() => { pBar.style.width = '100%'; }, 450);
+                }
+
+                // Automatic redirect after sequence
                 setTimeout(() => {
-                    // Save session details
-                    sessionStorage.setItem("userRole", currentRole);
-                    sessionStorage.setItem("userEmail", document.getElementById('email').value);
-                    sessionStorage.setItem("userName", currentRole + " User");
-                    
-                    window.location.href = "app.html";
-                }, 1000);
+                    navigateToConsole();
+                }, 650);
             } else {
                 alert("Security Authorization Code Mismatch. Please check the prefilled code.");
             }

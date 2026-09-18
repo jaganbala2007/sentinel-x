@@ -14,7 +14,10 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks, UploadFile, File, Form
 from pydantic import BaseModel, Field
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 from app.core.reconstruction_engine import reconstruction_engine
 
@@ -228,3 +231,26 @@ async def delete_digital_twin(twin_id: str) -> Dict[str, Any]:
         del STORED_TWINS[twin_id]
         return {"status": "deleted", "id": twin_id}
     raise HTTPException(status_code=404, detail="Digital Twin not found.")
+
+
+@router.post("/reconstruct-volumetric", summary="Trigger Volumetric Dense TSDF Reconstruction")
+async def reconstruct_volumetric_twin(
+    quality_level: str = "MED",
+    twin_name: str = "Residential Room 3D Twin"
+) -> Dict[str, Any]:
+    """Runs zero-shot monocular depth estimation, ArUco PnP metric scaling, gravity alignment, and TSDF fusion."""
+    try:
+        from app.core.volumetric_mvs_engine import volumetric_mvs_engine
+        # Create dummy sample PIL images for demonstration processing
+        sample_img = Image.new("RGB", (640, 480), color=(30, 40, 50))
+        images = [sample_img, sample_img, sample_img, sample_img]
+        
+        result = volumetric_mvs_engine.process_volumetric_twin(
+            images=images,
+            twin_name=twin_name,
+            quality_level=quality_level.upper()
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Volumetric MVS reconstruction failed: {str(e)}")
+

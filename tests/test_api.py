@@ -1,327 +1,263 @@
 """
-Sentinel-X API Test Suite
-==========================
-Automated pytest tests for all FastAPI backend endpoints.
-
-Run:
-    pip install pytest pytest-asyncio httpx
-    pytest tests/ -v --tb=short
+Sentinel-X Comprehensive Test Suite — Disaster Resilience Subsystems
+====================================================================
+Tests:
+  1. Root Metadata & Health Check
+  2. System Status & Architecture Endpoint
+  3. Disaster Fusion Engine & Risk Calculation
+  4. Sensor Trust & Byzantine Quarantine Engine
+  5. Telemetry Ingestion & Local SQLite Persistence
+  6. Communication Manager 4-Mode Failover
+  7. HF Packet Radio (7.105 MHz AX.25) Frame Serialization & CRC
+  8. Satellite IoT Compact Burst Framing
+  9. Offline Store-and-Forward SQLite Durability & Batch Sync
+ 10. Post-Quantum Cryptography (ML-KEM / ML-DSA) Session Interfaces
+ 11. Simulation Scenario Injections (5 SIH Hero Moments)
 """
 
 import pytest
-from httpx import AsyncClient, ASGITransport
-
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
+# Ensure project root and backend are on sys.path
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_backend_dir = os.path.join(_project_root, "backend")
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+if _backend_dir not in sys.path:
+    sys.path.insert(0, _backend_dir)
+
+from fastapi.testclient import TestClient
 from app.main import app
+from app.services.sensor_trust_engine import sensor_trust_engine
+from app.services.disaster_fusion_engine import disaster_fusion_engine
+from app.services.communication_manager import communication_manager
+from app.services.adapters.hf_packet_adapter import hf_packet_adapter
+from app.services.adapters.satellite_adapter import satellite_adapter
+from app.services.store_and_forward import store_and_forward_service
+from app.services.pqc_crypto import pqc_crypto_service
 
-
-# ---------------------------------------------------------------------------
-# Test Client Fixture
-# ---------------------------------------------------------------------------
-
-@pytest.fixture
-def anyio_backend():
-    return "asyncio"
-
-
-@pytest.fixture
-async def client():
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test"
-    ) as ac:
-        yield ac
-
+client = TestClient(app)
 
 # ---------------------------------------------------------------------------
-# Meta / Health Tests
+# 1. System Health & Metadata
 # ---------------------------------------------------------------------------
 
-@pytest.mark.anyio
-async def test_root_returns_metadata(client):
-    """GET / should return service metadata."""
-    response = await client.get("/")
+def test_root_metadata():
+    response = client.get("/")
     assert response.status_code == 200
     data = response.json()
-    assert data["service"] == "Sentinel-X Core API"
-    assert data["version"] == "1.0.0"
+    assert "Sentinel-X" in data["service"]
     assert data["status"] == "operational"
+    assert "disaster_risk" in data["endpoints"]
 
-
-@pytest.mark.anyio
-async def test_health_check_returns_200(client):
-    """GET /health should return 200 with mesh status."""
-    response = await client.get("/health")
+def test_health_endpoint():
+    response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
-    assert data["mesh_nodes_online"] == 1024
-    assert data["ai_agents_active"] == 4
+    assert data["edge_node"] == "RPI5-EDGE-01"
+
+def test_system_status():
+    response = client.get("/api/v1/system/status")
+    assert response.status_code == 200
+    data = response.json()
+    assert "ESP32-S3" in data["architecture"]
+    assert data["sensor_nodes_count"] == 20
+
+# ---------------------------------------------------------------------------
+# 2. Disaster Fusion & Risk Calculation
+# ---------------------------------------------------------------------------
+
+def test_disaster_risk_endpoint():
+    response = client.get("/api/v1/disasters/current")
+    assert response.status_code == 200
+    data = response.json()
+    assert "risk_score" in data
+    assert "confidence" in data
+    assert "contributing_factors" in data
+    assert data["confidence"] >= 80
+
+def test_disaster_fusion_engine_unit():
+    # Normal stream
+    normal_readings = [{"stage_m": 2.41, "rate_m_min": 0.01} for _ in range(5)]
+    normal_risk = disaster_fusion_engine.evaluate_risk(normal_readings)
+    assert normal_risk.severity == "NORMAL"
+    assert normal_risk.risk_score < 45
+
+    # Critical surge stream
+    critical_readings = [{"stage_m": 3.85, "rate_m_min": 0.08} for _ in range(5)]
+    critical_risk = disaster_fusion_engine.evaluate_risk(critical_readings)
+    assert critical_risk.severity == "CRITICAL"
+    assert critical_risk.risk_score >= 75
+    assert critical_risk.contributing_factors.water >= 30
+
+# ---------------------------------------------------------------------------
+# 3. Sensor Trust & Byzantine Quarantine Engine
+# ---------------------------------------------------------------------------
+
+def test_sensor_trust_normal():
+    # Normal reading agreeing with neighbors
+    trust_res = sensor_trust_engine.evaluate_node("NODE-01", 2.41, 0.01, [2.40, 2.42])
+    assert trust_res.status == "VERIFIED"
+    assert trust_res.trust_score >= 90.0
+    assert len(trust_res.reasons) == 0
+
+def test_sensor_trust_spoof_and_quarantine():
+    # Erratic reading: 8.90m when neighbors report 2.41m
+    trust_res = sensor_trust_engine.evaluate_node("NODE-03", 8.90, 2.45, [2.41, 2.42])
+    assert trust_res.status == "QUARANTINED"
+    assert trust_res.trust_score < 50.0
+    assert len(trust_res.reasons) >= 1
+    assert sensor_trust_engine.is_quarantined("NODE-03")
+
+def test_sensor_trust_matrix_endpoint():
+    response = client.get("/api/v1/sensors/trust")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 20
+
+# ---------------------------------------------------------------------------
+# 4. Telemetry Ingestion & SQLite Durability
+# ---------------------------------------------------------------------------
+
+def test_telemetry_ingestion_api():
+    payload = {
+        "node_id": "NODE-01",
+        "sequence_num": 101,
+        "timestamp_ms": 1725720000000,
+        "water_level_m": 2.41,
+        "rate_of_rise_m_min": 0.01,
+        "battery_pct": 95,
+        "safety_state": 0,
+        "confidence": 0.98
+    }
+    response = client.post("/api/v1/telemetry/ingest", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "PROCESSED"
+    assert data["node_id"] == "NODE-01"
+
+# ---------------------------------------------------------------------------
+# 5. Communication Resilience & Failover State Machine
+# ---------------------------------------------------------------------------
+
+def test_comms_status_and_mode_switching():
+    # Set to Degraded (HF Packet)
+    response = client.post("/api/v1/communications/set-mode/DEGRADED")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["mode"] == "DEGRADED"
+    assert data["hf_status"] == "ACTIVE"
+    assert data["internet_status"] == "FAILED"
+
+    # Reset to Normal
+    response = client.post("/api/v1/communications/set-mode/NORMAL")
+    assert response.status_code == 200
+    assert response.json()["mode"] == "NORMAL"
+
+def test_hf_packet_radio_ax25_encoding():
+    event_payload = {
+        "event_id": "EVT-9821",
+        "stage_m": 3.85,
+        "risk_score": 84,
+        "severity": "CRITICAL"
+    }
+    tx_result = hf_packet_adapter.transmit_emergency_bulletin(event_payload)
+    assert tx_result["channel"] == "HF_PACKET_RADIO"
+    assert tx_result["frequency_mhz"] == 7.105
+    assert len(tx_result["raw_frame_hex"]) > 0
+    assert tx_result["status"] == "TRANSMITTED"
+
+def test_satellite_adapter_sbd_framing():
+    event_payload = {
+        "stage_m": 3.85,
+        "rate_m_min": 0.08,
+        "risk_score": 84,
+        "confidence": 94,
+        "battery_pct": 92
+    }
+    sat_res = satellite_adapter.transmit_burst(event_payload)
+    assert sat_res["channel"] == "SATELLITE_IOT"
+    assert sat_res["bytes_used"] == 16 # 16 bytes fixed SBD frame
+    assert sat_res["status"] == "SENT"
 
 
 # ---------------------------------------------------------------------------
-# Alerts Endpoint Tests
+# 6. Offline Store-and-Forward & Batch Synchronization
 # ---------------------------------------------------------------------------
 
-@pytest.mark.anyio
-async def test_get_active_alerts(client):
-    """GET /api/v1/alerts/active should return alert list."""
-    response = await client.get("/api/v1/alerts/active")
-    assert response.status_code == 200
-    data = response.json()
-    assert "alerts" in data
-    assert "total" in data
-    assert isinstance(data["alerts"], list)
+def test_store_and_forward_lifecycle():
+    # 1. Clear any prior events
+    store_and_forward_service.clear_all()
+    assert len(store_and_forward_service.get_pending_events()) == 0
 
-
-@pytest.mark.anyio
-async def test_get_active_alerts_severity_filter(client):
-    """GET /api/v1/alerts/active?severity=CRITICAL should filter correctly."""
-    response = await client.get("/api/v1/alerts/active?severity=CRITICAL")
-    assert response.status_code == 200
-    data = response.json()
-    for alert in data["alerts"]:
-        assert alert["severity"] == "CRITICAL"
-
-
-@pytest.mark.anyio
-async def test_get_alert_history(client):
-    """GET /api/v1/alerts/history should return paginated results."""
-    response = await client.get("/api/v1/alerts/history?limit=10&offset=0")
-    assert response.status_code == 200
-    data = response.json()
-    assert "total" in data
-    assert len(data["alerts"]) <= 10
-
-
-@pytest.mark.anyio
-async def test_get_alert_by_id(client):
-    """GET /api/v1/alerts/{id} should return the correct alert."""
-    response = await client.get("/api/v1/alerts/alert-942861")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["id"] == "alert-942861"
-    assert "severity" in data
-    assert "details" in data
-
-
-@pytest.mark.anyio
-async def test_get_alert_not_found(client):
-    """GET /api/v1/alerts/{nonexistent_id} should return 404."""
-    response = await client.get("/api/v1/alerts/nonexistent-id-99999")
-    assert response.status_code == 404
-
-
-@pytest.mark.anyio
-async def test_acknowledge_alert(client):
-    """POST /api/v1/alerts/acknowledge should acknowledge an alert."""
-    response = await client.post(
-        "/api/v1/alerts/acknowledge",
-        params={"alert_id": "alert-942861", "operator_id": "admin@sentinel.x"}
+    # 2. Queue an event
+    evt_id = store_and_forward_service.queue_event(
+        node_id="NODE-02",
+        event_type="SURGE_ALERT",
+        severity="CRITICAL",
+        risk_score=84,
+        confidence=94,
+        payload={"stage_m": 3.85}
     )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "acknowledged"
-    assert data["alert_id"] == "alert-942861"
+    assert evt_id.startswith("EVT-")
+    pending = store_and_forward_service.get_pending_events()
+    assert len(pending) == 1
+    assert pending[0]["event_id"] == evt_id
 
-
-# ---------------------------------------------------------------------------
-# Sensors / Telemetry Tests
-# ---------------------------------------------------------------------------
-
-@pytest.mark.anyio
-async def test_get_telemetry_snapshot(client):
-    """GET /api/v1/sensors/telemetry should return full snapshot."""
-    response = await client.get("/api/v1/sensors/telemetry")
-    assert response.status_code == 200
-    data = response.json()
-    assert "nodes_synced" in data
-    assert data["nodes_synced"] == 1024
-    assert "gas_levels" in data
-    assert "active_worker_count" in data
-    assert 0.0 <= data["risk_score_global"] <= 100.0
-
-
-@pytest.mark.anyio
-async def test_get_worker_profiles(client):
-    """GET /api/v1/sensors/workers should return worker Digital DNA list."""
-    response = await client.get("/api/v1/sensors/workers")
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    assert len(data) > 0
-    worker = data[0]
-    assert "worker_id" in worker
-    assert "heart_rate_bpm" in worker
-    assert "fatigue_coefficient" in worker
-    assert 0.0 <= worker["fatigue_coefficient"] <= 1.0
-
-
-@pytest.mark.anyio
-async def test_ingest_sensor_reading_normal(client):
-    """POST /api/v1/sensors/ingest should accept a normal sensor reading."""
-    payload = {
-        "sensor_id": "CO2_SENSOR_TEST_001",
-        "sensor_type": "co2",
-        "value": 350.0,
-        "unit": "ppm",
-        "zone": "Zone-A",
-        "is_anomaly": False
-    }
-    response = await client.post("/api/v1/sensors/ingest", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "ingested"
-    assert data["is_anomaly"] is False
-
-
-@pytest.mark.anyio
-async def test_ingest_sensor_reading_anomaly_detected(client):
-    """POST /api/v1/sensors/ingest should auto-detect anomaly on threshold breach."""
-    payload = {
-        "sensor_id": "CO2_SENSOR_TEST_002",
-        "sensor_type": "co2",
-        "value": 1500.0,   # Well above 800 ppm threshold
-        "unit": "ppm",
-        "zone": "Zone-B",
-        "is_anomaly": False
-    }
-    response = await client.post("/api/v1/sensors/ingest", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["is_anomaly"] is True
-
+    # 3. Batch Sync
+    sync_res = store_and_forward_service.sync_all_pending()
+    assert sync_res["status"] == "SYNC_COMPLETE"
+    assert sync_res["synced_count"] == 1
+    assert len(store_and_forward_service.get_pending_events()) == 0
 
 # ---------------------------------------------------------------------------
-# Machine Control Tests
+# 7. Post-Quantum Cryptography Interfaces
 # ---------------------------------------------------------------------------
 
-@pytest.mark.anyio
-async def test_get_machine_status(client):
-    """GET /api/v1/machine/status should list all registered machines."""
-    response = await client.get("/api/v1/machine/status")
-    assert response.status_code == 200
-    data = response.json()
-    assert "machines" in data
-    assert len(data["machines"]) > 0
-    machine = data["machines"][0]
-    assert "machine_id" in machine
-    assert "status" in machine
+def test_pqc_session_interfaces():
+    kem_res = pqc_crypto_service.establish_session_kem()
+    assert kem_res["algorithm"] == "ML-KEM-768"
+    assert kem_res["ciphertext_len_bytes"] == 1088
+    assert kem_res["status"] == "SESSION_ESTABLISHED"
 
-
-@pytest.mark.anyio
-async def test_machine_lockout_success(client):
-    """POST /api/v1/machine/lockout should successfully lock out a machine."""
-    payload = {
-        "machine_id": "PLC_BOILER_A",
-        "operator_id": "admin@sentinel.x",
-        "reason": "Automated test lockout",
-        "emergency_override": False
-    }
-    response = await client.post("/api/v1/machine/lockout", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "success"
-    assert "PLC_BOILER_A" in data["locked_units"]
-    assert data["latency_ms"] > 0
-
-
-@pytest.mark.anyio
-async def test_machine_lockout_not_found(client):
-    """POST /api/v1/machine/lockout with unknown machine should return 404."""
-    payload = {
-        "machine_id": "PLC_NONEXISTENT_99",
-        "operator_id": "admin@sentinel.x",
-        "reason": "Test",
-        "emergency_override": False
-    }
-    response = await client.post("/api/v1/machine/lockout", json=payload)
-    assert response.status_code == 404
-
-
-@pytest.mark.anyio
-async def test_machine_restore(client):
-    """POST /api/v1/machine/restore should restore a locked machine."""
-    # First lock a machine
-    await client.post("/api/v1/machine/lockout", json={
-        "machine_id": "PLC_CONVEYOR_01",
-        "operator_id": "admin@sentinel.x",
-        "reason": "Setup for restore test",
-        "emergency_override": True
-    })
-    # Now restore it
-    response = await client.post(
-        "/api/v1/machine/restore",
-        params={"machine_id": "PLC_CONVEYOR_01", "operator_id": "admin@sentinel.x"}
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "restored"
-
+    sig_res = pqc_crypto_service.sign_telemetry_dsa(b"SX_EMERGENCY_FRAME_01")
+    assert sig_res["algorithm"] == "ML-DSA-65"
+    assert len(sig_res["signature_hex"]) == 64
+    assert sig_res["status"] == "VERIFIED"
 
 # ---------------------------------------------------------------------------
-# Digital Twin & Reconstruction Tests
+# 8. SIH Demonstration Scenarios
 # ---------------------------------------------------------------------------
 
-@pytest.mark.anyio
-async def test_list_digital_twins(client):
-    """GET /api/v1/digital-twins should return twins list."""
-    response = await client.get("/api/v1/digital-twins")
-    assert response.status_code == 200
-    data = response.json()
-    assert "total" in data
-    assert "twins" in data
-    assert isinstance(data["twins"], list)
+def test_sih_hero_scenarios():
+    # Hero 1
+    r1 = client.post("/api/v1/simulation/inject", json={"scenario": "disaster_detection"})
+    assert r1.status_code == 200
+    assert "HERO 1" in r1.json()["result"]
 
+    # Hero 2
+    r2 = client.post("/api/v1/simulation/inject", json={"scenario": "sensor_spoofing"})
+    assert r2.status_code == 200
+    assert "HERO 2" in r2.json()["result"]
 
-@pytest.mark.anyio
-async def test_validate_and_reconstruct_workflow(client):
-    """POST /validate and /reconstruct should handle 3-4 images and create job."""
-    import base64
-    import io
-    from PIL import Image, ImageDraw
+    # Hero 3
+    r3 = client.post("/api/v1/simulation/inject", json={"scenario": "internet_failure"})
+    assert r3.status_code == 200
+    assert "HERO 3" in r3.json()["result"]
 
-    # Generate 3 base64 encoded test images with visual features
-    b64_images = []
-    for i in range(3):
-        img = Image.new('RGB', (320, 240), color=(25 + i*20, 35 + i*10, 60))
-        d = ImageDraw.Draw(img)
-        d.rectangle([30 + i*10, 40, 180 + i*20, 160], fill=(220, 140, 50), outline=(255, 255, 255))
-        d.line([(10, 10), (300, 200)], fill=(0, 255, 255), width=2)
-        d.text((40, 50), f'View {i+1}', fill=(255, 255, 255))
-        buf = io.BytesIO()
-        img.save(buf, format="JPEG")
-        b64_str = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
-        b64_images.append(b64_str)
+    # Hero 4
+    r4 = client.post("/api/v1/simulation/inject", json={"scenario": "complete_network_loss"})
+    assert r4.status_code == 200
+    assert "HERO 4" in r4.json()["result"]
 
-    # 1. Validation test
-    val_res = await client.post("/api/v1/digital-twins/validate", json={"images": b64_images})
-    assert val_res.status_code == 200
-    val_data = val_res.json()
-    assert val_data["valid"] is True
-    assert "image_reports" in val_data
+    # Hero 5
+    r5 = client.post("/api/v1/simulation/inject", json={"scenario": "restoration"})
+    assert r5.status_code == 200
+    assert "HERO 5" in r5.json()["result"]
 
-    # 2. Reconstruction Job initiation
-    rec_res = await client.post(
-        "/api/v1/digital-twins/reconstruct",
-        json={
-            "twin_name": "Automated PyTest Workshop Twin",
-            "reference_scale_meters": 1.0,
-            "reference_object_type": "Standard Doorway (0.9m)",
-            "images": b64_images
-        }
-    )
-    assert rec_res.status_code == 200
-    job = rec_res.json()
-    assert "job_id" in job
-    assert job["state"] == "CREATED"
-    job_id = job["job_id"]
-
-    # 3. Query job state
-    status_res = await client.get(f"/api/v1/digital-twins/jobs/{job_id}")
-    assert status_res.status_code == 200
-    assert "state" in status_res.json()
-
+    # Reset
+    r6 = client.post("/api/v1/simulation/inject", json={"scenario": "reset_normal"})
+    assert r6.status_code == 200
+    assert "RESET" in r6.json()["result"]

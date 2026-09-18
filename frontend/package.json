@@ -1,0 +1,19 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "Client-side cockpit simulation dashboard, authentication gate, and landing page.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "@fable-org/fable-standalone": "^3.3.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "fable-standalone": "^3.8.0",
+    "http-proxy-middleware": "^4.2.0"
+  }
+}

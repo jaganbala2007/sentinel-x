@@ -1,0 +1,31 @@
+# Sentinel-X Authoritative Configuration Specification
+
+system:
+  pi_host: "10.242.228.126"
+  backend_port: 8000
+  frontend_port: 3000
+  auto_browser: true
+  kiosk_mode: false
+
+mqtt:
+  host: "127.0.0.1"
+  port: 1883
+  topics:
+    node01: "sentinel/node01/telemetry"
+    node02: "sentinel/node02/telemetry"
+
+thresholds:
+  temperature:
+    high: 35.0
+    critical: 45.0
+  gas_adc:
+    high: 2000
+    critical: 2500
+  vibration:
+    trigger: 3.0
+  node_timeout_sec: 5.0
+
+telemetry:
+  websocket_enabled: true
+  polling_interval_ms: 1000
+  camera_enabled: false

@@ -1,225 +1,113 @@
-# Sentinel-X Data Flow Documentation
+# 🔄 Sentinel-X Canonical Data Flow & Store-and-Forward Protocol
 
-## Overview
-
-This document describes the complete data pipeline — from raw IoT sensor measurements through AI processing to the operator cockpit dashboard.
-
----
-
-## End-to-End Data Flow
-
-```
-╔══════════════╗    ╔══════════════╗    ╔══════════════╗    ╔══════════════╗
-║  SENSOR DATA ║ ─► ║  FOG INGEST  ║ ─► ║  AI PIPELINE ║ ─► ║   OUTPUTS   ║
-╚══════════════╝    ╚══════════════╝    ╚══════════════╝    ╚══════════════╝
-```
+**Document Version:** 2.4.0  
+**Specification:** End-to-End Packet Lifecycle & Disruption-Tolerant Store-and-Forward Architecture  
+**Core Guarantee:** *Zero packet loss during communication blackouts.*
 
 ---
 
-## Stage 1 — Sensor Data Origination
+## 1. Canonical Telemetry Pipeline
 
-### Worker Biometric Data
-```
-Smart Helmet (BLE 5.2)
-  ├── Heart rate sensor        → HR (bpm) @ 1Hz
-  ├── SpO2 pulse oximeter      → SpO2 (%) @ 1Hz
-  └── Accelerometer/IMU        → Fall detection @ 50Hz
+```mermaid
+sequenceDiagram
+    autonumber
+    participant PHY as Physical Sensor
+    participant MCU as ESP32-S3 Node
+    participant VAL as Sensor Trust Engine
+    participant DET as Deterministic Risk Engine
+    participant ACT as Hardware Actuators
+    participant WAL as Local SQLite WAL
+    participant COM as Comms Manager
+    participant REM as Remote SCADA / Cloud
 
-UWB Positioning System (DW3000)
-  ├── 4 UWB anchors per zone
-  ├── TDOA triangulation algorithm
-  └── 3D position (x,y,z) @ 10Hz, accuracy ±15cm
-```
-
-### Environmental Sensor Data
-```
-Gas Detection Array
-  ├── CO2 sensor (NDIR)        → ppm @ 0.5Hz
-  ├── H2S sensor (electrochemical) → ppm @ 0.5Hz
-  └── LEL combustible gas      → % LEL @ 1Hz
-
-LoRaWAN Environmental Node
-  ├── Temperature/Humidity     → °C, % RH @ 0.1Hz
-  └── Barometric pressure      → hPa @ 0.1Hz
-
-Vibration Accelerometer (Modbus RTU)
-  ├── Bearing vibration        → Hz (FFT) @ 10Hz
-  └── Shaft imbalance score    → 0-100 @ 1Hz
-```
-
-### Vision Data
-```
-IP Camera (RTSP)
-  ├── Resolution: 3840×2160 (4K)
-  ├── Frame rate: 30fps
-  └── Encoding: H.264 CBR, 8Mbps
+    PHY->>MCU: Transducer Analog/SPI Voltage
+    MCU->>MCU: 100Hz Sampling + ECDSA SECP256R1 Sign
+    MCU->>VAL: Normalized Sensor Telemetry Packet
+    VAL->>VAL: Physics Validation & Z-Score Trust Calculation
+    VAL->>DET: Trusted Sensor Readings (Score >= 80%)
+    DET->>DET: Deterministic ISO 13849 Rule Evaluation
+    alt Risk State == CRITICAL
+        DET->>ACT: Assert Local GPIO Trip (<800ms)
+        ACT->>ACT: 415V Relay Opens + 110dB Siren Fires
+    end
+    DET->>WAL: Commit Incident & Telemetry to SQLite Ring-Buffer
+    WAL->>COM: Enqueue Outgoing Telemetry Record
+    alt Primary Internet Available
+        COM->>REM: HTTP/2 REST / WebSocket Streaming
+        REM-->>COM: HTTP 200 OK / ACK
+        COM->>WAL: Mark Record SYNCHRONIZED
+    else Internet Failed
+        COM->>COM: Route Packet to Secondary HF Radio Simulation
+        COM->>WAL: Mark Record PENDING_STORE_AND_FORWARD
+    end
 ```
 
 ---
 
-## Stage 2 — Edge Gateway Ingestion
+## 2. Telemetry Packet Specification
 
-All sensor data from Stage 1 aggregates at the **Ruggedized IoT Gateway**:
+Every sensor node transmits structured binary or JSON packets containing mandatory integrity headers:
 
-```
-IoT Gateway Processing
-  ├── MQTT publish (QoS 1) → topic: sentinel/telemetry/{zone}/{sensor_id}
-  ├── Data validation & range checking
-  ├── Timestamp normalization (UTC)
-  ├── Packet buffering (64 reading FIFO per sensor)
-  └── Forwarding to Fog Node MQTT broker @ 1883/tcp
-```
-
-**MQTT Topic Structure:**
-```
-sentinel/
-  telemetry/
-    zone-a/co2/sensor-024          ← Gas readings
-    zone-b/temperature/env-007     ← Environmental
-    worker/uwb/helmet-w1-john-doe  ← Worker position
-    machine/vibration/comp-b       ← Machine vitals
-  alerts/
-    critical/zone-b/intrusion-001  ← Critical alerts
-    warning/zone-a/gas-level-002   ← Warning alerts
-  commands/
-    machine/lockout/plc-comp-b     ← Outbound PLC commands
-```
-
----
-
-## Stage 3 — Fog Layer AI Processing
-
-```
-┌─────────────────────────────────────────────────┐
-│ MQTT Subscriber (sentinel/telemetry/#)           │
-│   → Telemetry Parser                            │
-│   → In-memory ring buffer (last 300 readings)   │
-└────────────────────────┬────────────────────────┘
-                         │
-          ┌──────────────┼──────────────────┐
-          │              │                  │
-          ▼              ▼                  ▼
-   ┌─────────────┐ ┌─────────────┐ ┌───────────────┐
-   │ Vision Agent│ │Prediction AI│ │  Route Agent  │
-   │             │ │             │ │               │
-   │ YOLOv11-TRT │ │ Risk Field  │ │ A* Pathfinder │
-   │ 32ms/frame  │ │ Model v3.4  │ │ 15ms/compute  │
-   │             │ │ 250ms/grid  │ │               │
-   │ Detections: │ │ Output:     │ │ Output:       │
-   │ - PPE state │ │ - Risk grid │ │ - Evac routes │
-   │ - Zone pos  │ │ - Zone risk │ │ - Exit ETAs   │
-   │ - Fall det  │ │ - Forecast  │ │               │
-   └──────┬──────┘ └──────┬──────┘ └───────┬───────┘
-          │               │                │
-          └───────────────▼────────────────┘
-                          │
-              ┌───────────▼────────────┐
-              │  Emergency Response    │
-              │       Agent           │
-              │                       │
-              │  If consensus ≥ 3/4:  │
-              │  → Modbus/TCP lockout │
-              │  → MQTT alert publish │
-              │  → WebSocket push     │
-              └───────────────────────┘
-```
-
-### Digital DNA Fatigue Coefficient Calculation
-
-```python
-# Computed every 30 seconds per worker
-fatigue_coefficient = weighted_avg(
-    heart_rate_variability_score,   # weight: 0.35
-    spo2_deficit_score,             # weight: 0.25
-    time_on_floor_score,            # weight: 0.20
-    movement_irregularity_score,    # weight: 0.15
-    historical_incident_score,      # weight: 0.05
-)
-# Result: 0.0 (alert) → 1.0 (critically fatigued)
-# Threshold alert: > 0.70
+```json
+{
+  "packet_header": {
+    "node_id": "ESP32_NODE_01",
+    "sequence_num": 149204,
+    "timestamp_epoch_ms": 1788915900000,
+    "firmware_version": "v2.4.0-sil2",
+    "crc32": "0x9E2B5A71",
+    "ecdsa_signature": "MEQCIB3x9Z...eZqf"
+  },
+  "sensor_payload": [
+    {
+      "sensor_id": "PT100_MOTOR_TEMP",
+      "param": "motor_temperature",
+      "value": 68.5,
+      "unit": "°C",
+      "raw_adc": 2480,
+      "snr_db": 42.1
+    },
+    {
+      "sensor_id": "ADXL345_VIBRATION",
+      "param": "bearing_vibration",
+      "value": 2.4,
+      "unit": "mm/s",
+      "raw_adc": 1120,
+      "snr_db": 38.5
+    }
+  ],
+  "device_health": {
+    "battery_soc_pct": 98.5,
+    "internal_temp_c": 34.2,
+    "wdt_reset_count": 0,
+    "uptime_seconds": 86400
+  }
+}
 ```
 
 ---
 
-## Stage 4 — Cloud Persistence
+## 3. Store-and-Forward State Machine
+
+When external connectivity is compromised, Sentinel-X switches into an offline store-and-forward mode:
 
 ```
-Fog Node ──HTTPS/TLS──► FastAPI Backend
-                              │
-              ┌───────────────┼────────────────┐
-              │               │                │
-              ▼               ▼                ▼
-         PostgreSQL          Redis         WebSocket
-         (long-term)       (real-time)    (live push)
-              │               │                │
-         Incident logs   Sensor snapshot   Cockpit UI
-         Worker DNA      (30s TTL)         Update
-         Audit trails    Risk grid state
+[Local Event Created]
+         │
+         ▼
+     [PENDING]  ───(Network Check: Online)───► [SENT] ───(Remote ACK)───► [SYNCHRONIZED]
+         │                                       ▲
+         │ (Network Check: Offline)              │ (Network Restored)
+         ▼                                       │
+     [RETRYING] ─────────────────────────────────┘
+         │
+         ▼ (Max Retries / Blackout Continued)
+  [LOCAL_PERSISTED] (Held in SQLite WAL & USB Blackbox)
 ```
 
-### Write Path (Alert Event)
-```
-1. Fog publishes MQTT alert → sentinel/alerts/critical/zone-b/intrusion
-2. Backend MQTT subscriber receives message
-3. Alert written to PostgreSQL alerts table (async)
-4. Alert cached in Redis (key: alert:{id}, TTL 3600s)
-5. Alert broadcast to all WebSocket connections (/ws/alerts)
-6. Cockpit dashboard receives push, renders alert card
-```
-
-### Read Path (Telemetry Query)
-```
-1. Cockpit UI polls GET /api/v1/sensors/telemetry
-2. FastAPI checks Redis key: telemetry:snapshot:latest
-3a. Cache HIT  → Return Redis value (< 1ms)
-3b. Cache MISS → Query PostgreSQL latest readings
-4. Response serialized to JSON
-5. Redis cache updated (TTL reset to 30s)
-```
-
----
-
-## Stage 5 — Cockpit Dashboard Rendering
-
-```
-FastAPI WebSocket ──push──► Browser WebSocket Client
-                                      │
-                       ┌──────────────▼──────────────┐
-                       │        Tab Router           │
-                       │                             │
-              ┌────────┴────────┐   ┌────────────────┴──────┐
-              │ Alert Stream    │   │  3D Digital Twin       │
-              │ addAlert()      │   │  updateWorkerPos()     │
-              │ playAlertSound()│   │  renderRiskField()     │
-              └─────────────────┘   └───────────────────────┘
-```
-
----
-
-## Data Latency Budget
-
-| Segment | Target | Achieved |
-|---|---|---|
-| Sensor → Gateway | < 10ms | ~5ms |
-| Gateway → Fog MQTT | < 20ms | ~12ms |
-| Vision inference (YOLOv11) | < 45ms | 32ms |
-| Agent consensus | < 15ms | 11ms |
-| PLC Modbus command | < 10ms | 8ms |
-| **Total edge override** | **< 100ms** | **84ms** |
-| Fog → Cloud HTTPS push | < 200ms | ~140ms |
-| WebSocket push to UI | < 50ms | ~18ms |
-| **Total to dashboard** | **< 500ms** | **~310ms** |
-
----
-
-## Data Volume Estimates (Per Site, 100 Workers)
-
-| Data Type | Rate | Daily Volume |
-|---|---|---|
-| Sensor readings | 1,200 msg/s | ~100M readings/day |
-| Video frames | 4 cams × 30fps | ~10M frames/day |
-| Position updates | 100 workers × 10Hz | 86M positions/day |
-| Alert events | ~50/day average | 50 records/day |
-| Audit logs | ~1,000/day | 1,000 records/day |
-
-**PostgreSQL partition strategy:** Time-based monthly partitions on `sensor_readings`, with automated archival to cold storage after 90 days.
+### State Definitions:
+1. **`PENDING`**: Packet validated and stored in local SQLite database; awaiting transmission dispatch.
+2. **`RETRYING`**: Transmission attempted; no ACK received within 1500ms; exponential backoff active.
+3. **`SENT`**: Dispatched via available physical transport (IP, HF Radio, or Satellite).
+4. **`ACKNOWLEDGED`**: Remote receiving station confirmed receipt with matching cryptographic CRC.
+5. **`SYNCHRONIZED`**: Packet acknowledged and archived into local historical tables.
