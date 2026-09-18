@@ -30,7 +30,7 @@ _workspace_root = os.path.dirname(_backend_dir)
 if _workspace_root not in sys.path:
     sys.path.insert(0, _workspace_root)
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Body
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -111,11 +111,24 @@ if os.path.isdir(_assets_dir):
 # ---------------------------------------------------------------------------
 
 @app.get("/")
-def root_endpoint():
-    landing_file = os.path.join(_workspace_root, "index.html")
-    if os.path.isfile(landing_file):
-        return FileResponse(landing_file)
-    return twin_state_manager.get_authoritative_state()
+def root_endpoint(request: Request = None):
+    if request and "text/html" in request.headers.get("accept", ""):
+        landing_file = os.path.join(_workspace_root, "index.html")
+        if os.path.isfile(landing_file):
+            return FileResponse(landing_file)
+    return {
+        "service": "Sentinel-X Autonomous Disaster Resilience Platform",
+        "version": settings.VERSION,
+        "status": "operational",
+        "edge_node": "RPI5-EDGE-01",
+        "endpoints": {
+            "disaster_risk": "/api/v1/disasters/current",
+            "sensor_trust": "/api/v1/sensors/trust",
+            "telemetry_ingest": "/api/v1/telemetry/ingest",
+            "communications": "/api/v1/communications",
+            "system_status": "/api/v1/system/status"
+        }
+    }
 
 @app.get("/health")
 @app.get("/api/health")
@@ -125,7 +138,7 @@ def health_check():
         "service": "Sentinel-X Edge Engine",
         "systemMode": twin_state_manager.system_mode,
         "mqtt": twin_state_manager.mqtt_status,
-        "edge_node": "RPI3-EDGE-01",
+        "edge_node": "RPI5-EDGE-01",
         "storage": "SQLite WAL Buffer Active",
         "timestamp": int(time.time())
     }
