@@ -46,6 +46,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="state-engine.js"></script>
     <script src="twin-engine.js"></script>
+    <script src="satellite-textures-data.js"></script>
+    <script src="satellite-globe-engine.js?v=6.0"></script>
 
     <style>
         :root {
@@ -368,6 +370,13 @@
                 <button onclick="setRole('OPERATOR')" id="role-ops" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">OPS</button>
             </div>
 
+            <!-- Real-Time Satellite Constellation Uplink Trigger -->
+            <button onclick="openSatelliteLinkModal()" id="btn-topbar-satellite" class="px-2.5 py-1 rounded bg-gradient-to-r from-sky-950 via-cyan-950 to-emerald-950 hover:from-sky-900 hover:to-emerald-900 text-cyan-300 border border-cyan-400/80 text-xs font-mono font-bold flex items-center gap-1.5 shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer" title="Instant Real-Time Satellite Constellation Uplink &amp; 3D Earth Globe">
+                <span id="topbar-satellite-led" class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span>🛰️ SATELLITE CONNECT</span>
+                <span id="topbar-satellite-status-pill" class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-200 border border-cyan-400/40">ONLINE</span>
+            </button>
+
             <!-- Instant Photo-to-Digital-Twin Trigger -->
             <button onclick="openInstantTwinModal()" id="btn-topbar-photo-twin" class="px-2.5 py-1 rounded bg-cyan-950/90 hover:bg-cyan-900 text-cyan-300 border border-cyan-400 text-xs font-mono font-bold flex items-center gap-1.5 shadow-md shadow-cyan-500/20 transition-all active:scale-95" title="Convert Photographs into 3D Digital Twin">
                 <span>📷</span>
@@ -537,6 +546,21 @@
                 <div onclick="switchWorkspace(13)" id="nav-13" class="nav-item">
                     <span class="font-mono text-cyan-400 text-[10px]">14</span>
                     <span>PHYSICAL PROTOTYPE</span>
+                </div>
+                <div onclick="switchWorkspace(14)" id="nav-14" class="nav-item">
+                    <span class="font-mono text-cyan-400 text-[10px]">15</span>
+                    <span class="flex items-center gap-1.5"><span>🛰️</span><span>SATELLITE SAT-COM</span></span>
+                </div>
+            </div>
+
+            <!-- Direct Satellite Uplink Launcher Card -->
+            <div class="p-2.5 rounded-lg bg-gradient-to-r from-sky-950/80 via-cyan-950/70 to-slate-900 border border-cyan-400/50 space-y-1.5 cursor-pointer hover:border-cyan-300 transition-all shadow-md shadow-cyan-950/50" onclick="openSatelliteLinkModal()">
+                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-cyan-300">
+                    <span class="flex items-center gap-1.5"><span>🛰️</span><span>SAT-LINK REALTIME</span></span>
+                    <span class="badge-live text-[8px]" id="sidebar-sat-badge">● LEO UPLINK</span>
+                </div>
+                <div class="text-[9px] font-mono text-slate-300 leading-tight">
+                    Instant 3D Earth Orbit Tracking &amp; Space-Segment Telemetry Handshake.
                 </div>
             </div>
 
@@ -2773,6 +2797,179 @@
                 </div>
             </div>
 
+            <!-- ============================================================ -->
+            <!-- WORKSPACE 15: SATELLITE SAT-COM & 3D ORBITAL TRACKING        -->
+            <!-- ============================================================ -->
+            <div id="panel-14" class="workspace-panel space-y-4">
+                <!-- Top SCADA Telemetry Strip for Satellite Constellation -->
+                <div class="scada-panel p-3 bg-gradient-to-r from-[#071322] via-[#09182b] to-[#06111f] border border-cyan-500/40 shadow-xl">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-2 mb-2 border-b border-white/10">
+                        <div class="flex items-center gap-2">
+                            <span class="text-cyan-400 font-bold text-xs font-mono flex items-center gap-1.5">
+                                <span>🛰️</span>
+                                <span>REAL-TIME SATELLITE GROUND STATION &amp; ORBITAL SPACE-SEGMENT TRACKING</span>
+                            </span>
+                            <span class="badge-live font-mono text-[9px]" id="ws-sat-status-badge">● LIVE 3D ORBIT LINK</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-[9px] font-mono text-slate-400">
+                            <span>STATION: <strong class="text-cyan-300">GS-SX-2841 (MUMBAI)</strong></span>
+                            <span>ACTIVE SAT: <strong class="text-emerald-400" id="ws-sat-active-name">SENTINEL-SAT-LEO-01</strong></span>
+                            <span>FREQ: <strong class="text-amber-300">UPLINK 437.500 MHz</strong></span>
+                            <span>SECURITY: <strong class="text-purple-300">AES-256-GCM CCSDS</strong></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-[10px] font-mono">
+                        <div class="p-2 rounded bg-black/40 border border-white/5 flex flex-col hover:border-cyan-500/30 transition-all">
+                            <span class="text-slate-400 text-[9px]">GROUND ROTOR AZIMUTH</span>
+                            <span class="text-cyan-300 font-bold text-sm mt-0.5" id="ws-sat-hud-az">142.5°</span>
+                            <span class="text-[8px] text-slate-500">Auto Rotor Tracking</span>
+                        </div>
+                        <div class="p-2 rounded bg-black/40 border border-white/5 flex flex-col hover:border-cyan-500/30 transition-all">
+                            <span class="text-slate-400 text-[9px]">GROUND ROTOR ELEVATION</span>
+                            <span class="text-cyan-300 font-bold text-sm mt-0.5" id="ws-sat-hud-el">48.2°</span>
+                            <span class="text-[8px] text-slate-500">Above Horizon (Min 5.0°)</span>
+                        </div>
+                        <div class="p-2 rounded bg-black/40 border border-white/5 flex flex-col hover:border-cyan-500/30 transition-all">
+                            <span class="text-slate-400 text-[9px]">DOPPLER FREQ SHIFT</span>
+                            <span class="text-amber-300 font-bold text-sm mt-0.5" id="ws-sat-hud-doppler">-2.40 kHz</span>
+                            <span class="text-[8px] text-slate-500">Auto-AFC Corrected</span>
+                        </div>
+                        <div class="p-2 rounded bg-black/40 border border-white/5 flex flex-col hover:border-cyan-500/30 transition-all">
+                            <span class="text-slate-400 text-[9px]">LINK SNR QUALITY</span>
+                            <span class="text-emerald-400 font-bold text-sm mt-0.5" id="ws-sat-hud-snr">+19.4 dB</span>
+                            <span class="text-[8px] text-slate-500">High Margin / Clean</span>
+                        </div>
+                        <div class="p-2 rounded bg-black/40 border border-white/5 flex flex-col hover:border-cyan-500/30 transition-all">
+                            <span class="text-slate-400 text-[9px]">SPACE LINK LATENCY</span>
+                            <span class="text-emerald-400 font-bold text-sm mt-0.5" id="ws-sat-hud-latency">14.8 ms</span>
+                            <span class="text-[8px] text-slate-500">540km LEO Orbit</span>
+                        </div>
+                        <div class="p-2 rounded bg-black/40 border border-white/5 flex flex-col hover:border-cyan-500/30 transition-all">
+                            <span class="text-slate-400 text-[9px]">BURST TRANSMIT</span>
+                            <button onclick="triggerSatelliteSpaceBurst()" class="mt-1 px-2 py-0.5 rounded bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold text-[9px] shadow-sm active:scale-95 transition-all">
+                                ⚡ UPLINK BURST
+                            </button>
+                            <span class="text-[8px] text-slate-500 mt-0.5">AX.25 10-Byte Packet</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Grid: 3D Earth Globe on Left, Telemetry & Passes on Right -->
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-4" style="min-height: 560px;">
+                    <!-- 3D Earth Globe Viewport (8 Cols) -->
+                    <div class="xl:col-span-8 scada-panel p-3 flex flex-col relative overflow-hidden shadow-2xl bg-[#080d16] border border-cyan-500/30">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2 z-20 bg-[#0d1117]/80 backdrop-blur-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="font-display font-bold text-xs text-white">3D EARTH GLOBE &amp; ORBITAL SATELLITE VISUALIZER</span>
+                                <span class="badge-live font-mono text-[9px]">● WEBGL THREE.JS 60 FPS</span>
+                            </div>
+                            <div class="flex items-center gap-1 text-[10px] font-mono">
+                                <button onclick="setSatelliteCameraMode('GLOBAL')" class="px-2 py-0.5 rounded bg-cyan-600/40 text-cyan-200 border border-cyan-400 font-bold">GLOBAL VIEW</button>
+                                <button onclick="setSatelliteCameraMode('TRACK')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10">TRACK SAT</button>
+                                <button onclick="setSatelliteCameraMode('GROUND')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10">GROUND STATION</button>
+                                <button onclick="setSatelliteCameraMode('POLAR')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10">POLAR</button>
+                            </div>
+                        </div>
+
+                        <!-- 3D Canvas Mounting Point -->
+                        <div id="ws-satellite-globe-viewport" class="flex-1 w-full relative min-h-[460px] rounded border border-white/5 overflow-hidden bg-black">
+                            <!-- Overlay Quick HUD Controls inside 3D Canvas -->
+                            <div class="absolute bottom-2 left-2 z-20 flex items-center gap-1.5 text-[9px] font-mono bg-black/70 backdrop-blur-sm p-1.5 rounded border border-white/10">
+                                <span class="text-slate-400 font-bold">CONSTELLATION:</span>
+                                <button onclick="switchSatellite(0)" class="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-400 text-cyan-300 font-bold">SENTINEL-SAT</button>
+                                <button onclick="switchSatellite(1)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">SATNOGS</button>
+                                <button onclick="switchSatellite(2)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">TINYGS</button>
+                            </div>
+                            <div class="absolute bottom-2 right-2 z-20 text-[9px] font-mono text-cyan-400/80 bg-black/60 px-2 py-1 rounded border border-cyan-500/20">
+                                🖱️ DRAG TO ROTATE GLOBE • WHEEL TO ZOOM
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Decoded Frames & Constellation Passes (4 Cols) -->
+                    <div class="xl:col-span-4 space-y-4">
+                        <!-- Space Segment Telemetry Decoded Frame Stream -->
+                        <div class="scada-panel p-3 space-y-2 border border-cyan-500/20">
+                            <div class="flex items-center justify-between border-b border-white/10 pb-1.5 text-xs font-mono">
+                                <span class="font-bold text-white flex items-center gap-1.5"><span>📡</span><span>DOWNLINK FRAME DECODER</span></span>
+                                <span class="badge-live text-[8px]">REAL-TIME AX.25</span>
+                            </div>
+                            <div id="ws-sat-frames-feed" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                <div class="p-2 rounded bg-black/40 border border-white/5 text-[10px] font-mono space-y-1">
+                                    <div class="flex items-center justify-between text-cyan-300 font-bold">
+                                        <span>SAT-FRM-0892</span>
+                                        <span class="text-emerald-400">● VERIFIED</span>
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 font-mono">PAYLOAD HEX: <span class="text-amber-300">AA55FF0104184200F298000000003A4F</span></div>
+                                    <div class="text-[9px] text-slate-400">TELEMETRY: PT100 68.9°C • Vibration 2.4g • Status: NOMINAL</div>
+                                </div>
+                                <div class="p-2 rounded bg-black/40 border border-white/5 text-[10px] font-mono space-y-1">
+                                    <div class="flex items-center justify-between text-cyan-300 font-bold">
+                                        <span>SAT-FRM-0891</span>
+                                        <span class="text-emerald-400">● VERIFIED</span>
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 font-mono">PAYLOAD HEX: <span class="text-amber-300">82A0A4A640406082A0A4868A406103F0</span></div>
+                                    <div class="text-[9px] text-slate-400">TELEMETRY: Node ESP32-01 • Risk 12.0 • Temp 68.5°C</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Satellite Passes -->
+                        <div class="scada-panel p-3 space-y-2 border border-white/10">
+                            <div class="flex items-center justify-between border-b border-white/10 pb-1.5 text-xs font-mono">
+                                <span class="font-bold text-white flex items-center gap-1.5"><span>⏱️</span><span>UPCOMING SATELLITE PASSES</span></span>
+                                <span class="text-[9px] text-cyan-400">COUNTDOWN</span>
+                            </div>
+                            <div class="space-y-1.5 text-[10px] font-mono">
+                                <div class="p-1.5 rounded bg-black/30 border border-cyan-500/30 flex items-center justify-between">
+                                    <div>
+                                        <div class="font-bold text-cyan-300">SENTINEL-SAT-LEO-01</div>
+                                        <div class="text-[9px] text-slate-400">437.500 MHz • Max El 74.2°</div>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/30 font-bold">IN VIEW (AOS)</span>
+                                </div>
+                                <div class="p-1.5 rounded bg-black/30 border border-white/5 flex items-center justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-200">NOAA-19 (Hydrology)</div>
+                                        <div class="text-[9px] text-slate-400">137.100 MHz • Max El 52.8°</div>
+                                    </div>
+                                    <span class="text-amber-400 font-bold">in 23m 40s</span>
+                                </div>
+                                <div class="p-1.5 rounded bg-black/30 border border-white/5 flex items-center justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-200">TINYGS-DISASTER-04</div>
+                                        <div class="text-[9px] text-slate-400">433.175 MHz • Max El 81.0°</div>
+                                    </div>
+                                    <span class="text-slate-400">in 51m 40s</span>
+                                </div>
+                                <div class="p-1.5 rounded bg-black/30 border border-white/5 flex items-center justify-between">
+                                    <div>
+                                        <div class="font-bold text-slate-200">ISS / ZARYA (APRS Relay)</div>
+                                        <div class="text-[9px] text-slate-400">145.825 MHz • Max El 63.4°</div>
+                                    </div>
+                                    <span class="text-slate-400">in 1h 26m</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Space Uplink Trigger Box -->
+                        <div class="scada-panel p-3 space-y-2 border border-rose-500/30 bg-gradient-to-br from-[#1b0a0e] to-slate-900">
+                            <div class="flex items-center justify-between text-xs font-mono">
+                                <span class="font-bold text-rose-300 flex items-center gap-1.5"><span>⚡</span><span>TACTICAL SPACE BURST UPLINK</span></span>
+                                <span class="badge-live text-[8px] bg-rose-500/20 text-rose-300 border-rose-500/40">READY</span>
+                            </div>
+                            <p class="text-[9px] font-mono text-slate-400 leading-tight">
+                                Transmit emergency disaster telemetry directly to Low Earth Orbit satellites via 437.500 MHz uplink with 25W RF output.
+                            </p>
+                            <button onclick="triggerSatelliteSpaceBurst()" class="w-full py-2 rounded bg-gradient-to-r from-rose-600 via-rose-700 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-mono font-bold text-xs shadow-lg shadow-rose-950/50 flex items-center justify-center gap-2 active:scale-95 transition-all">
+                                <span>🛰️</span>
+                                <span>TRANSMIT EMERGENCY SPACE BURST</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -2926,6 +3123,161 @@
             </div>
             <div class="space-y-3 text-xs font-mono" id="m-arch-details">
                 <!-- Injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- REAL-TIME SATELLITE CONSTELLATION UPLINK & 3D EARTH GLOBE MODAL     -->
+    <!-- ==================================================================== -->
+    <div id="modal-satellite-connection" class="modal-overlay" onclick="if(event.target===this)closeSatelliteLinkModal()">
+        <div class="modal-box p-4 space-y-3 max-w-6xl w-[95vw] max-h-[92vh] flex flex-col bg-[#070b14]/95 border border-cyan-400/50 shadow-2xl shadow-cyan-950/80 backdrop-blur-xl">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-white/10 pb-2 flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded bg-cyan-950 border border-cyan-400/60 flex items-center justify-center text-cyan-300 text-base shadow-md shadow-cyan-500/30">
+                        🛰️
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-display font-bold text-sm text-white tracking-wide">REAL-TIME SATELLITE CONSTELLATION UPLINK &amp; 3D EARTH GLOBE</span>
+                            <span class="badge-live font-mono text-[9px]" id="sat-hud-status-badge">● LIVE ORBIT LINK</span>
+                        </div>
+                        <div class="text-[10px] font-mono text-slate-400 flex items-center gap-2">
+                            <span>GROUND STATION: <strong class="text-cyan-300">GS-SX-2841 (MUMBAI UNIT-01)</strong></span>
+                            <span>•</span>
+                            <span>ACTIVE LEO BIRD: <strong class="text-emerald-400" id="sat-hud-satellite">SENTINEL-SAT-LEO-01</strong></span>
+                            <span>•</span>
+                            <span>ORBIT: <strong class="text-amber-300" id="sat-hud-altitude">542.4 km</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 font-mono text-xs">
+                    <button onclick="switchWorkspace(14); closeSatelliteLinkModal();" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold cursor-pointer">
+                        🌐 FULL WORKSPACE
+                    </button>
+                    <button onclick="closeSatelliteLinkModal()" class="text-slate-400 hover:text-white text-xs px-2 py-1 rounded bg-white/5 hover:bg-white/10 cursor-pointer">✕ CLOSE</button>
+                </div>
+            </div>
+
+            <!-- Modal Body: 3D Viewport on Left (8 cols), Real-Time Telemetry HUD on Right (4 cols) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 overflow-hidden" style="min-height: 520px;">
+                <!-- 3D Earth Globe Viewport -->
+                <div class="lg:col-span-8 flex flex-col relative rounded-lg border border-cyan-500/30 overflow-hidden bg-black shadow-inner">
+                    <!-- Top HUD bar inside 3D Viewport -->
+                    <div class="absolute top-2 left-2 z-20 flex items-center gap-2 text-[10px] font-mono bg-black/75 backdrop-blur-md px-2.5 py-1 rounded border border-white/10">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-slate-300">CARRIER LOCK:</span>
+                        <strong class="text-emerald-300">437.500 MHz GFSK</strong>
+                        <span class="text-slate-600">|</span>
+                        <span class="text-slate-300">VELOCITY:</span>
+                        <strong class="text-cyan-300" id="sat-hud-velocity">7.61 km/s</strong>
+                    </div>
+
+                    <!-- Camera View Controls in 3D Viewport -->
+                    <div class="absolute top-2 right-2 z-20 flex items-center gap-1 text-[10px] font-mono bg-black/75 backdrop-blur-md p-1 rounded border border-white/10">
+                        <button id="cam-global" onclick="setSatelliteCameraMode('GLOBAL')" class="px-2 py-0.5 rounded bg-cyan-600/50 text-cyan-200 border border-cyan-400 font-bold">GLOBAL</button>
+                        <button id="cam-track" onclick="setSatelliteCameraMode('TRACK')" class="px-2 py-0.5 rounded bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10">TRACK SAT</button>
+                        <button id="cam-ground" onclick="setSatelliteCameraMode('GROUND')" class="px-2 py-0.5 rounded bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10">GROUND LINK</button>
+                        <button id="cam-polar" onclick="setSatelliteCameraMode('POLAR')" class="px-2 py-0.5 rounded bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10">POLAR</button>
+                    </div>
+
+                    <!-- WebGL Canvas Container -->
+                    <div id="modal-satellite-globe-viewport" class="w-full h-full min-h-[480px] flex-1"></div>
+
+                    <!-- Bottom Overlay Controls in 3D Viewport -->
+                    <div class="absolute bottom-2 left-2 z-20 flex items-center gap-1.5 text-[9px] font-mono bg-black/75 backdrop-blur-md px-2 py-1 rounded border border-white/10">
+                        <span class="text-slate-400 font-bold">ACTIVE SAT:</span>
+                        <button id="btn-sat-0" onclick="switchSatellite(0)" class="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-400 text-cyan-300 font-bold">SENTINEL-SAT</button>
+                        <button id="btn-sat-1" onclick="switchSatellite(1)" class="px-2 py-0.5 rounded bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10">SATNOGS</button>
+                        <button id="btn-sat-2" onclick="switchSatellite(2)" class="px-2 py-0.5 rounded bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10">TINYGS</button>
+                    </div>
+
+                    <div class="absolute bottom-2 right-2 z-20 text-[9px] font-mono text-cyan-400/80 bg-black/60 px-2 py-0.5 rounded border border-cyan-500/20">
+                        🖱️ ROTATE: LEFT-DRAG • ZOOM: SCROLL
+                    </div>
+                </div>
+
+                <!-- Right Side: Telemetry Metrics & Space Burst Controls -->
+                <div class="lg:col-span-4 flex flex-col justify-between space-y-3 overflow-y-auto pr-0.5">
+                    <!-- Real-Time Ground Station Tracking Gauges -->
+                    <div class="scada-panel p-3 space-y-2 border border-cyan-500/30 bg-[#0c121e]">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-1.5 text-xs font-mono">
+                            <span class="font-bold text-white flex items-center gap-1.5"><span>📡</span><span>ROTOR TRACKING &amp; RF LINK</span></span>
+                            <span class="badge-live text-[8px]" id="sat-hud-status">LINK ACTIVE</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                            <div class="p-2 rounded bg-black/50 border border-white/5">
+                                <div class="text-[9px] text-slate-400">ROTOR AZIMUTH</div>
+                                <div class="text-cyan-300 font-bold text-base mt-0.5" id="sat-hud-az">142.5°</div>
+                                <div class="text-[8px] text-slate-500">True Heading (East)</div>
+                            </div>
+                            <div class="p-2 rounded bg-black/50 border border-white/5">
+                                <div class="text-[9px] text-slate-400">ROTOR ELEVATION</div>
+                                <div class="text-cyan-300 font-bold text-base mt-0.5" id="sat-hud-el">48.2°</div>
+                                <div class="text-[8px] text-slate-500">Above Local Horizon</div>
+                            </div>
+                            <div class="p-2 rounded bg-black/50 border border-white/5">
+                                <div class="text-[9px] text-slate-400">DOPPLER SHIFT</div>
+                                <div class="text-amber-300 font-bold text-base mt-0.5" id="sat-hud-doppler">-2.40 kHz</div>
+                                <div class="text-[8px] text-slate-500">Relative Motion Offset</div>
+                            </div>
+                            <div class="p-2 rounded bg-black/50 border border-white/5">
+                                <div class="text-[9px] text-slate-400">SIGNAL SNR</div>
+                                <div class="text-emerald-400 font-bold text-base mt-0.5" id="sat-hud-snr">+19.4 dB</div>
+                                <div class="text-[8px] text-slate-500">Clean High SNR</div>
+                            </div>
+                            <div class="p-2 rounded bg-black/50 border border-white/5">
+                                <div class="text-[9px] text-slate-400">ROUND-TRIP LATENCY</div>
+                                <div class="text-emerald-400 font-bold text-base mt-0.5" id="sat-hud-latency">14.8 ms</div>
+                                <div class="text-[8px] text-slate-500">Ultra-Low LEO Lag</div>
+                            </div>
+                            <div class="p-2 rounded bg-black/50 border border-white/5">
+                                <div class="text-[9px] text-slate-400">FRAMES RECEIVED</div>
+                                <div class="text-white font-bold text-base mt-0.5" id="sat-hud-packets">144 PKTS</div>
+                                <div class="text-[8px] text-slate-500">Libre Network Synced</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Downlink Frame Decoder Log -->
+                    <div class="scada-panel p-2.5 space-y-1.5 border border-white/10 bg-[#090f19] flex-1">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-1 text-xs font-mono">
+                            <span class="font-bold text-slate-200 text-[10px]">DECODED SPACE FRAMES (AX.25)</span>
+                            <span class="text-[8px] text-cyan-400 font-mono">BUFFER ACTIVE</span>
+                        </div>
+                        <div id="sat-frames-feed" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                            <div class="p-1.5 rounded bg-black/40 border border-white/5 text-[9px] font-mono space-y-0.5">
+                                <div class="flex items-center justify-between text-cyan-300 font-bold">
+                                    <span>SAT-FRM-0892 (TINYGS-04)</span>
+                                    <span class="text-emerald-400">● 11.2 dB SNR</span>
+                                </div>
+                                <div class="text-slate-400">HEX: <span class="text-amber-300">AA55FF0104184200F298000000003A4F</span></div>
+                                <div class="text-slate-400">TELEMETRY: PT100 68.9°C • Vibration 2.4g • NOMINAL</div>
+                            </div>
+                            <div class="p-1.5 rounded bg-black/40 border border-white/5 text-[9px] font-mono space-y-0.5">
+                                <div class="flex items-center justify-between text-cyan-300 font-bold">
+                                    <span>SAT-FRM-0891 (SENTINEL-SAT)</span>
+                                    <span class="text-emerald-400">● 14.8 dB SNR</span>
+                                </div>
+                                <div class="text-slate-400">HEX: <span class="text-amber-300">82A0A4A640406082A0A4868A406103F0</span></div>
+                                <div class="text-slate-400">TELEMETRY: ESP32-Node-01 • Risk 12.0 • Temp 68.5°C</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Space Burst Action -->
+                    <div class="p-2.5 rounded-lg border border-rose-500/40 bg-gradient-to-r from-[#1c080d] to-slate-900 space-y-2">
+                        <div class="flex items-center justify-between text-[10px] font-mono">
+                            <span class="text-rose-300 font-bold flex items-center gap-1"><span>⚡</span><span>EMERGENCY DISASTER BURST</span></span>
+                            <span class="badge-live text-[8px] bg-rose-500/20 text-rose-300 border-rose-500/40">ARMED</span>
+                        </div>
+                        <button onclick="triggerSatelliteSpaceBurst()" class="w-full py-2 rounded bg-gradient-to-r from-rose-600 via-rose-700 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-mono font-bold text-xs shadow-lg shadow-rose-950/60 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer">
+                            <span>🛰️</span>
+                            <span>TRANSMIT EMERGENCY SPACE BURST</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -3148,7 +3500,7 @@
         let prototypeTwinEngine = null;
         let activeTwinPreset = 'CONVEYOR';
 
-        // --- Section 30 Routing Paths (14 Workspaces - Section 7 & 31) ---
+        // --- Section 30 Routing Paths (15 Workspaces - Section 7 & 31) ---
         const WORKSPACE_ROUTES = [
             '/console',
             '/console/digital-twin',
@@ -3163,7 +3515,8 @@
             '/console/events',
             '/console/resilience',
             '/console/system',
-            '/console/prototype'
+            '/console/prototype',
+            '/console/satellite'
         ];
 
         // --- Section 31 Session Protection ---
@@ -3192,7 +3545,7 @@
             }, 400);
         }
 
-        // --- 2. Workspace Navigation (14 Workspaces) ---
+        // --- 2. Workspace Navigation (15 Workspaces) ---
         function switchWorkspace(idx, skipHistory) {
             activeWorkspaceIdx = idx;
             document.querySelectorAll('.workspace-panel').forEach((p, i) => {
@@ -3225,6 +3578,9 @@
             if (idx === 13) {
                 onPrototypeTabActivated();
             }
+            if (idx === 14) {
+                onSatelliteTabActivated();
+            }
         }
 
         // Initialize Workspace from current URL path (Section 30)
@@ -3245,8 +3601,157 @@
             else if (path.includes('/resilience') || hash.includes('resilience')) switchWorkspace(11, true);
             else if (path.includes('/system') || hash.includes('system')) switchWorkspace(12, true);
             else if (path.includes('/prototype') || hash.includes('prototype')) switchWorkspace(13, true);
+            else if (path.includes('/satellite') || hash.includes('satellite')) switchWorkspace(14, true);
             else switchWorkspace(0, true);
         }
+
+        // ====================================================================
+        // SATELLITE CONSTELLATION & 3D EARTH GLOBE HANDLERS
+        // ====================================================================
+        let satelliteModalEngine = null;
+        let satelliteWorkspaceEngine = null;
+
+        function openSatelliteLinkModal() {
+            const m = document.getElementById('modal-satellite-connection');
+            if (!m) return;
+            m.classList.add('open');
+
+            showToast('🛰️ Real-time Satellite Constellation Uplink Established!', 'success');
+
+            const container = document.getElementById('modal-satellite-globe-viewport');
+            if (container && typeof SatelliteGlobeEngine !== 'undefined') {
+                if (satelliteModalEngine) {
+                    try { satelliteModalEngine.destroy(); } catch(e) {}
+                    satelliteModalEngine = null;
+                }
+                satelliteModalEngine = new SatelliteGlobeEngine('modal-satellite-globe-viewport', {
+                    apiUrl: '/api/v1/satellite'
+                });
+                satelliteModalEngine.onTelemetry(updateSatelliteHUD);
+                setTimeout(() => {
+                    if (satelliteModalEngine) satelliteModalEngine.onWindowResize();
+                }, 100);
+            }
+
+            // Update topbar indicator
+            const pill = document.getElementById('topbar-satellite-status-pill');
+            if (pill) {
+                pill.textContent = 'LINK ACTIVE';
+                pill.className = 'text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/25 text-emerald-300 border border-emerald-400/50 font-bold';
+            }
+            const led = document.getElementById('topbar-satellite-led');
+            if (led) {
+                led.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+            }
+        }
+
+        function closeSatelliteLinkModal() {
+            closeModal('modal-satellite-connection');
+        }
+
+        function updateSatelliteHUD(telem) {
+            const safeSet = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+
+            safeSet('sat-hud-status', telem.status || 'LINK ACTIVE');
+            safeSet('sat-hud-status-badge', '● ' + (telem.status || 'LIVE ORBIT LINK'));
+            safeSet('sat-hud-satellite', telem.satellite || 'SENTINEL-SAT-LEO-01');
+            safeSet('sat-hud-altitude', (telem.altitudeKm || 542.4) + ' km');
+            safeSet('sat-hud-velocity', (telem.velocityKmS || 7.61) + ' km/s');
+            safeSet('sat-hud-az', (telem.azimuthDeg || 142.5) + '°');
+            safeSet('sat-hud-el', (telem.elevationDeg || 48.2) + '°');
+            safeSet('sat-hud-doppler', (telem.dopplerKhz > 0 ? '+' : '') + (telem.dopplerKhz || -2.40) + ' kHz');
+            safeSet('sat-hud-snr', '+' + (telem.snrDb || 19.4) + ' dB');
+            safeSet('sat-hud-latency', (telem.latencyMs || 14.8) + ' ms');
+            safeSet('sat-hud-packets', (telem.packetsReceived || 144) + ' PKTS');
+
+            // Workspace sync
+            safeSet('ws-sat-hud-az', (telem.azimuthDeg || 142.5) + '°');
+            safeSet('ws-sat-hud-el', (telem.elevationDeg || 48.2) + '°');
+            safeSet('ws-sat-hud-doppler', (telem.dopplerKhz > 0 ? '+' : '') + (telem.dopplerKhz || -2.40) + ' kHz');
+            safeSet('ws-sat-hud-snr', '+' + (telem.snrDb || 19.4) + ' dB');
+            safeSet('ws-sat-hud-latency', (telem.latencyMs || 14.8) + ' ms');
+            safeSet('ws-sat-active-name', telem.satellite || 'SENTINEL-SAT-LEO-01');
+
+            if (telem.event === 'BURST_TRANSMITTED') {
+                showToast('🛰️ Space-Segment Emergency Burst Transmitted!', 'success');
+                appendSatelliteFrameLog(telem.data || {});
+            }
+        }
+
+        function appendSatelliteFrameLog(frameData) {
+            const feed = document.getElementById('sat-frames-feed');
+            const wsFeed = document.getElementById('ws-sat-frames-feed');
+            const html = `
+                <div class="p-1.5 rounded bg-black/60 border border-emerald-500/40 text-[9px] font-mono space-y-0.5 animate-pulse">
+                    <div class="flex items-center justify-between text-emerald-300 font-bold">
+                        <span>${frameData.frame_id || 'SAT-UPLINK-BURST'}</span>
+                        <span class="text-cyan-300">● SPACE ACK</span>
+                    </div>
+                    <div class="text-slate-400">HEX: <span class="text-amber-300 font-mono">${frameData.payload_hex || '535804130062...'}</span></div>
+                    <div class="text-slate-500">UPLINK 437.500 MHz • 25W • ${frameData.satellite_target || 'SENTINEL-SAT-LEO-01'}</div>
+                </div>
+            `;
+            if (feed) feed.insertAdjacentHTML('afterbegin', html);
+            if (wsFeed) wsFeed.insertAdjacentHTML('afterbegin', html);
+        }
+
+        function triggerSatelliteSpaceBurst() {
+            if (satelliteModalEngine) {
+                satelliteModalEngine.triggerEmergencySpaceBurst();
+            } else if (satelliteWorkspaceEngine) {
+                satelliteWorkspaceEngine.triggerEmergencySpaceBurst();
+            } else {
+                showToast('🛰️ Activating Satellite Constellation Link...', 'info');
+                openSatelliteLinkModal();
+                setTimeout(() => {
+                    if (satelliteModalEngine) satelliteModalEngine.triggerEmergencySpaceBurst();
+                }, 600);
+            }
+        }
+
+        function setSatelliteCameraMode(mode) {
+            if (satelliteModalEngine) satelliteModalEngine.setCameraMode(mode);
+            if (satelliteWorkspaceEngine) satelliteWorkspaceEngine.setCameraMode(mode);
+            ['cam-global', 'cam-track', 'cam-ground', 'cam-polar'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    const isCur = id.toLowerCase().includes(mode.toLowerCase());
+                    btn.className = isCur ? 'px-2 py-0.5 rounded bg-cyan-600/50 text-cyan-200 border border-cyan-400 font-bold' : 'px-2 py-0.5 rounded bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10';
+                }
+            });
+        }
+
+        function switchSatellite(idx) {
+            if (satelliteModalEngine) satelliteModalEngine.switchActiveSatellite(idx);
+            if (satelliteWorkspaceEngine) satelliteWorkspaceEngine.switchActiveSatellite(idx);
+            ['btn-sat-0', 'btn-sat-1', 'btn-sat-2'].forEach((id, i) => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.className = i === idx ? 'px-2 py-0.5 rounded bg-cyan-950 border border-cyan-400 text-cyan-300 font-bold' : 'px-2 py-0.5 rounded bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10';
+                }
+            });
+        }
+
+        function onSatelliteTabActivated() {
+            const container = document.getElementById('ws-satellite-globe-viewport');
+            if (container && typeof SatelliteGlobeEngine !== 'undefined') {
+                if (satelliteWorkspaceEngine) {
+                    try { satelliteWorkspaceEngine.destroy(); } catch(e) {}
+                    satelliteWorkspaceEngine = null;
+                }
+                satelliteWorkspaceEngine = new SatelliteGlobeEngine('ws-satellite-globe-viewport', {
+                    apiUrl: '/api/v1/satellite'
+                });
+                satelliteWorkspaceEngine.onTelemetry(updateSatelliteHUD);
+                setTimeout(() => {
+                    if (satelliteWorkspaceEngine) satelliteWorkspaceEngine.onWindowResize();
+                }, 100);
+            }
+        }
+
 
         // --- 2b. Physical Prototype & Digital Twin Lab Handlers (Workspace 14) ---
         const PROTOTYPE_COMPONENTS = {

@@ -53,6 +53,16 @@ def transmit_emergency_satellite_uplink(req: SatelliteUplinkRequest):
     """Encodes and transmits an emergency packet over the open-source satellite network."""
     return open_satellite_service.transmit_emergency_uplink(req.dict())
 
+@router.post("/connect")
+def connect_satellite_link():
+    """Establishes instantaneous live link to the active satellite constellation."""
+    return open_satellite_service.connect_link()
+
+@router.post("/disconnect")
+def disconnect_satellite_link():
+    """Disconnects space telemetry link and parks ground station rotor."""
+    return open_satellite_service.disconnect_link()
+
 @router.post("/config")
 def configure_satellite_backend_server(req: SatelliteServerConfigRequest):
     """Connects or updates the remote open-source satellite backend server URL."""

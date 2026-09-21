@@ -5,7 +5,7 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const BACKEND_URL = process.env.BACKEND_URL || 'http://127.0.0.1:8080';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://127.0.0.1:8000';
 
 app.use(cors());
 
