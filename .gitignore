@@ -34,6 +34,8 @@ sentinel-x-frontend/
 *.hdr
 *.exr
 *.mp4
+!ppe.mp4
+!**/ppe.mp4
 *.mov
 *.avi
 *.mkv

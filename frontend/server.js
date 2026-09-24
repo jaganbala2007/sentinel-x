@@ -65,6 +65,23 @@ app.get('/app.html', (req, res) => {
 app.get('/cockpit', (req, res) => {
     res.sendFile(path.join(__dirname, 'src', 'app.html'));
 });
+app.get('/ppe', (req, res) => {
+    res.sendFile(path.join(__dirname, 'src', 'app.html'));
+});
+app.get('/ppe.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'src', 'app.html'));
+});
+
+// Serve stakeholders-impacts.html for Presentation Slide Exporter
+app.get('/stakeholders', (req, res) => {
+    res.sendFile(path.join(__dirname, 'src', 'stakeholders-impacts.html'));
+});
+app.get('/stakeholders-impacts', (req, res) => {
+    res.sendFile(path.join(__dirname, 'src', 'stakeholders-impacts.html'));
+});
+app.get('/stakeholders-impacts.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'src', 'stakeholders-impacts.html'));
+});
 
 // Start the server
 const server = app.listen(PORT, () => {

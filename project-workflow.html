@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SENTINEL-X | Complete Technical Workflow & Architecture (PPT Ready)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border-color: #64748b;
+      --accent-blue: #2563eb;
+      --accent-cyan: #0891b2;
+      --accent-purple: #7c3aed;
+      --accent-green: #16a34a;
+      --accent-orange: #ea580c;
+      --accent-red: #ef4444;
+      --badge-bg: #0f172a;
+      --scenario-bg: #eff6ff;
+      --scenario-border: #93c5fd;
+      --scenario-text: #1d4ed8;
+      --box-dash: #64748b;
+      --card-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      --curve-color: #1e293b;
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #070b14;
+      --bg-card: #0f172a;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #475569;
+      --accent-blue: #38bdf8;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #c084fc;
+      --accent-green: #4ade80;
+      --accent-orange: #fb923c;
+      --accent-red: #f87171;
+      --badge-bg: #1e293b;
+      --scenario-bg: #172554;
+      --scenario-border: #1e40af;
+      --scenario-text: #60a5fa;
+      --box-dash: #475569;
+      --card-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.6);
+      --curve-color: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Top Control Bar */
+    .control-bar {
+      width: 100%;
+      max-width: 1980px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--bg-card);
+      padding: 14px 24px;
+      border-radius: 16px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #00F0FF, #0077FF);
+      color: #050b14;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(0, 240, 255, 0.3);
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+    }
+    .btn-primary:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-main);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    .btn-secondary:hover {
+      background: rgba(148, 163, 184, 0.25);
+    }
+
+    .btn-accent {
+      background: #0f172a;
+      color: #ffffff;
+    }
+    [data-theme="dark"] .btn-accent {
+      background: #1e293b;
+      border: 1px solid #334155;
+    }
+
+    /* Main Presentation Canvas */
+    .slide-wrapper {
+      width: 100%;
+      max-width: 1980px;
+      background: var(--bg-card);
+      border-radius: 20px;
+      box-shadow: var(--card-shadow);
+      padding: 34px 38px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Header within slide */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-pill {
+      background: var(--badge-bg);
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 900;
+      padding: 10px 28px;
+      border-radius: 9999px;
+      letter-spacing: 1.5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .scenario-pill {
+      background: var(--scenario-bg);
+      border: 1.5px solid var(--scenario-border);
+      color: var(--scenario-text);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 22px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scenario-dot {
+      width: 10px;
+      height: 10px;
+      background: #2563eb;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #2563eb;
+    }
+
+    /* Diagram SVG Area */
+    .diagram-container {
+      width: 100%;
+      position: relative;
+    }
+
+    .diagram-container svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Quick Stage Navigator Tabs */
+    .stage-tabs {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stage-tab-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .stage-tab-btn:hover, .stage-tab-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    /* Presentation Slide Copy Modal / Drawer */
+    .copy-drawer {
+      display: none;
+      width: 100%;
+      max-width: 1980px;
+      margin-top: 24px;
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .copy-drawer.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .copy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+      margin-top: 18px;
+    }
+
+    .copy-card {
+      background: rgba(148, 163, 184, 0.08);
+      border-radius: 12px;
+      padding: 18px;
+      border-left: 4px solid #2563eb;
+    }
+
+    .copy-card h4 {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .copy-card p, .copy-card li {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .pitch-box {
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(37, 99, 235, 0.08);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      border-radius: 12px;
+    }
+
+    .pitch-box h3 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #2563eb;
+      margin-bottom: 8px;
+    }
+
+    .pitch-box p {
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--text-main);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      border: 1px solid #334155;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Print styles for export */
+    @media print {
+      body {
+        padding: 0;
+        background: #ffffff;
+      }
+      .control-bar, .copy-drawer, .stage-tabs, .toast {
+        display: none !important;
+      }
+      .slide-wrapper {
+        border: none;
+        box-shadow: none;
+        padding: 10px;
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body data-theme="light">
+
+  <!-- Top Action & Export Controls -->
+  <div class="control-bar">
+    <div class="brand-group">
+      <span class="brand-badge">SENTINEL-X ARCHITECTURE</span>
+      <div>
+        <div class="brand-title">
+          <span>End-to-End Operational Pipeline &amp; Workflow</span>
+          <span style="font-size:12px; background:rgba(37,99,235,0.12); color:#2563eb; padding:2px 8px; border-radius:6px; font-weight:700;">SIH 2026 PS 26223</span>
+        </div>
+        <div class="brand-sub">Sensors &bull; PQC (NIST FIPS 203/204) &bull; Multi-Bearer RF &bull; Edge Brain &bull; Quantum ML &bull; Cloud 3D Twin</div>
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" onclick="toggleScenario()" id="scenarioBtn">
+        🔄 Mode: <span id="currentScenarioText">Full End-to-End Pipeline</span>
+      </button>
+      <button class="btn btn-secondary" onclick="toggleTheme()">
+        🌓 <span id="themeText">Dark Mode</span>
+      </button>
+      <button class="btn btn-secondary" onclick="toggleCopyDrawer()">
+        📋 PPT Slide Copy &amp; Notes
+      </button>
+      <button class="btn btn-primary" onclick="exportHighResPNG()">
+        📸 Export 4K PNG (For PPT)
+      </button>
+      <a href="docs/PROJECT_WORKFLOW.svg" download="SENTINEL_X_COMPLETE_WORKFLOW.svg" class="btn btn-accent" style="text-decoration:none;">
+        📥 Download Vector SVG
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Presentation Canvas Container -->
+  <div class="slide-wrapper" id="slideArea">
+    <!-- Header Row -->
+    <div class="slide-header">
+      <div class="header-pill">
+        <span>SENTINEL-X &bull; COMPLETE WORKFLOW</span>
+      </div>
+      <div class="scenario-pill">
+        <span class="scenario-dot"></span>
+        <span id="scenarioHeaderLabel">End-to-End Cyber-Physical Architecture &amp; Data Pipeline</span>
+      </div>
+    </div>
+
+    <!-- The Complete Vector Flow Graphic -->
+    <div class="diagram-container" id="diagramContainer">
+      <svg id="mainSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 680" width="100%" height="100%" style="font-family:'Plus Jakarta Sans', 'Segoe UI', -apple-system, sans-serif;">
+        <defs>
+          <filter id="shadowBox" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+          </filter>
+          <filter id="glowPulse" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+          <marker id="mArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--curve-color, #1e293b)"/>
+          </marker>
+          <linearGradient id="quantumGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#06b6d4"/>
+            <stop offset="50%" stop-color="#3b82f6"/>
+            <stop offset="100%" stop-color="#a855f7"/>
+          </linearGradient>
+          <linearGradient id="satGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#38bdf8"/>
+            <stop offset="100%" stop-color="#0284c7"/>
+          </linearGradient>
+          <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#10b981"/>
+            <stop offset="100%" stop-color="#059669"/>
+          </linearGradient>
+        </defs>
+        <g id="svgContent"></g>
+      </svg>
+    </div>
+
+    <!-- Quick Navigation Highlights -->
+    <div class="stage-tabs">
+      <span style="font-size:12px; font-weight:800; color:var(--text-muted); display:flex; align-items:center; margin-right:6px;">FOCUS STAGE:</span>
+      <button class="stage-tab-btn active" onclick="highlightStage(0)">All Stages</button>
+      <button class="stage-tab-btn" onclick="highlightStage(1)">① Sensors &amp; Machinery</button>
+      <button class="stage-tab-btn" onclick="highlightStage(2)">② Post-Quantum Crypto (PQC)</button>
+      <button class="stage-tab-btn" onclick="highlightStage(3)">③ Multi-Bearer (HF &amp; Satellite)</button>
+      <button class="stage-tab-btn" onclick="highlightStage(4)">④ Edge Brain &amp; Algorithms</button>
+      <button class="stage-tab-btn" onclick="highlightStage(5)">⑤ Quantum Machine Learning</button>
+      <button class="stage-tab-btn" onclick="highlightStage(6)">⑥ Cloud Lake &amp; 3D Twin</button>
+    </div>
+  </div>
+
+  <!-- PPT Slide Copy & Speaker Notes Drawer -->
+  <div class="copy-drawer" id="copyDrawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h3 style="font-size:18px; font-weight:800;">📄 Presentation Master Notes &amp; Jury Pitch Script</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Copy-paste ready bullet points for your official SIH 2026 Master Slide Deck or technical report.</p>
+      </div>
+      <button class="btn btn-primary" onclick="copyAllText()">📋 Copy All Text to Clipboard</button>
+    </div>
+
+    <!-- 6-Stage Technical Grid -->
+    <div class="copy-grid">
+      <!-- 1. Physical Sensing -->
+      <div class="copy-card" style="border-left-color: #2563eb;">
+        <h4>① Physical Sensing &amp; Transducer Acquisition</h4>
+        <p><strong>Hardware:</strong> ESP32-S3 Dual-Core @ 240MHz, FreeRTOS deterministic task scheduler (100Hz sampling), 1.2s hardware watchdog.</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>Environmental:</strong> DHT22 (-40°C to +80°C ±0.5°C), MQ-135 (Hazardous gas CH₄, CO, air quality ppm).</li>
+          <li><strong>Machine &amp; Kinematics:</strong> ADXL345 3-axis accelerometer (±16g vibration spectrum, mechanical bearing fault detection).</li>
+          <li><strong>Sub-80ms Isolation:</strong> Direct optocoupled relay cuts 415V industrial contactors upon critical anomaly.</li>
+        </ul>
+      </div>
+
+      <!-- 2. Post-Quantum Crypto -->
+      <div class="copy-card" style="border-left-color: #10b981;">
+        <h4>② Post-Quantum Cryptography (PQC) Security</h4>
+        <p><strong>Standards:</strong> NIST FIPS 203 (ML-KEM-768) and NIST FIPS 204 (ML-DSA-65) lattice-based cryptography.</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>ML-KEM-768:</strong> Lattice-based Key Encapsulation Mechanism neutralizing "Harvest Now, Decrypt Later" quantum adversary decryption.</li>
+          <li><strong>ML-DSA-65:</strong> Unforgeable post-quantum digital signatures verifying firmware updates and emergency trip commands.</li>
+          <li><strong>Silicon Root-of-Trust:</strong> ESP32-S3 eFuse hardware key storage + AES-256-GCM authenticated cipher with monotonic replay protection.</li>
+        </ul>
+      </div>
+
+      <!-- 3. Multi-Bearer Communications -->
+      <div class="copy-card" style="border-left-color: #0284c7;">
+        <h4>③ Multi-Bearer Resilient Data Transmission</h4>
+        <p><strong>Protocol Standard:</strong> Disruption-Tolerant Hybrid Networking with 4-Tier Automated Link Escalation.</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>Tier 1 (Normal Operations):</strong> Terrestrial GbE / Wi-Fi 6 / 4G LTE with MQTT QoS 1 backhaul (&lt;20ms latency).</li>
+          <li><strong>Tier 2 (Terrestrial Cut):</strong> Emergency HF Ham Radio skywave (3–30 MHz, AX.25 / ALE protocol, 500+ km range across mountain terrains).</li>
+          <li><strong>Tier 3 (Atmospheric Blackout):</strong> LEO Satellite burst connectivity via compact 10-byte binary SBD (SatNOGS / TinyGS adapters).</li>
+          <li><strong>Tier 4 (Total Blackout):</strong> Autonomous store-and-forward via local SQLite Write-Ahead Logging &amp; USB blackbox (0% packet loss).</li>
+        </ul>
+      </div>
+
+      <!-- 4. Edge Hardware & Algorithms -->
+      <div class="copy-card" style="border-left-color: #d97706;">
+        <h4>④ Industrial Edge Brain &amp; Safety Algorithms</h4>
+        <p><strong>Controller:</strong> Raspberry Pi 4/5 (8GB RAM), Quad-Core Cortex-A72/A76, local FastAPI ASGI and Mosquitto broker.</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>Bayesian Sensor Trust:</strong> 4-tier truth badges (<code>LIVE</code>, <code>DERIVED</code>, <code>SIMULATED</code>, <code>STALE</code>) with Kalman filter rate-of-rise tracking (&Delta;/&Delta;t) discarding sensor drift (&lt;20% trust rejection).</li>
+          <li><strong>Explainable Risk Engine:</strong> Multi-sensor cross-correlation scoring (0-100 deterministic risk index) triggering interlocks in &lt;80ms.</li>
+          <li><strong>Dynamic A* Pathfinding:</strong> Real-time vector calculation of safe evacuation corridors avoiding expanding 3D hazard plumes.</li>
+        </ul>
+      </div>
+
+      <!-- 5. Quantum Machine Learning -->
+      <div class="copy-card" style="border-left-color: #9333ea;">
+        <h4>⑤ Quantum Machine Learning (QML) &amp; AI Anomaly Detection</h4>
+        <p><strong>Mathematical Framework:</strong> Parameterized Quantum Circuits (PQC) &amp; Variational Quantum Classifiers (VQC).</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>Hilbert Space Mapping:</strong> Telemetry vectors (vibration FFT + gas rate-of-rise) encoded into multi-qubit quantum states via Angle/Amplitude embedding.</li>
+          <li><strong>Exponential Feature Separation:</strong> Quantum kernels separate non-linear multi-harmonic equipment degradation that classical SVMs miss.</li>
+          <li><strong>Edge-to-QPU Hybrid Pipeline:</strong> Edge TinyML Autoencoders execute fast micro-anomaly filtering; cloud quantum simulators compute Remaining Useful Life (RUL).</li>
+        </ul>
+      </div>
+
+      <!-- 6. Cloud Database & Digital Twin -->
+      <div class="copy-card" style="border-left-color: #0d9488;">
+        <h4>⑥ Cloud Lake, 3D Digital Twin &amp; Enterprise Command</h4>
+        <p><strong>Infrastructure:</strong> Dual-tier database (Edge SQLite WAL &rarr; Cloud TimescaleDB / BigQuery) + Three.js 60 FPS WebGL Engine.</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>3D Spatial Digital Twin:</strong> 1:1 isometric replica of plant/mine bays, volumetric hazard bubbles, and worker evacuation coordinates.</li>
+          <li><strong>Enterprise Integration:</strong> Automated SAP / ERP predictive maintenance sync, cutting catastrophic furnace/conveyor unplanned downtime.</li>
+          <li><strong>Statutory Compliance:</strong> Automated DGMS (Directorate General of Mines Safety) &amp; NDMA audit logbooks with cryptographic proof.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Pitch Scripts -->
+    <div class="pitch-box">
+      <h3>🎙️ 90-Second Master Jury Pitch Script</h3>
+      <p>
+        "Respected Evaluators, current industrial and disaster safety systems fail at three critical points: they rely on fragile cloud backhauls that collapse during crises; they are vulnerable to emerging quantum decryption threats; and they present raw 2D charts that overwhelm emergency commanders.
+        <br><br>
+        <strong>SENTINEL-X</strong> resolves this through a complete, fail-safe cyber-physical loop. It begins at the transducer layer, sampling environmental gas, temperature, and 3-axis machine vibration at 100Hz on dual-core ESP32-S3 nodes. Before transmission, data is protected using <strong>NIST FIPS 203/204 Post-Quantum Cryptography</strong> to prevent 'Harvest Now, Decrypt Later' quantum espionage.
+        <br><br>
+        When networks fail, SENTINEL-X automatically escalates across a <strong>4-tier resilient bearer hierarchy</strong>—shifting seamlessly from terrestrial GbE to emergency HF Ham Radio skywaves spanning 500+ km, or LEO satellite burst uplinks. At the edge, a Raspberry Pi executes our <strong>Bayesian Sensor Trust Engine</strong> and <strong>Deterministic Risk Engine</strong>, tripping critical power contactors in under 80 milliseconds without waiting for cloud round-trips.
+        <br><br>
+        For deep predictive intelligence, telemetry is mapped into multi-qubit Hilbert space via <strong>Quantum Machine Learning (VQC/PQC)</strong> to classify non-linear machine fatigue and Remaining Useful Life. Finally, commanders interact with a <strong>live 3D Spatial Digital Twin</strong> in Three.js, projecting volumetric hazard zones and dynamic A* evacuation corridors synchronized with enterprise ERP and DGMS audit logs. SENTINEL-X is not a concept—it is a fully demonstrable, quantum-resilient hardware reality."
+      </p>
+    </div>
+  </div>
+
+  <div class="toast" id="toastMsg">✅ 4K High-Res PNG exported! Drag directly into your PPT slide.</div>
+  <canvas id="exportCanvas" style="display:none;"></canvas>
+
+  <script>
+    // System Scenarios / Modes
+    const scenarios = [
+      {
+        id: 'full_pipeline',
+        title: 'Full End-to-End Pipeline',
+        headerLabel: 'Complete Cyber-Physical Workflow: SENSE ➔ PQC ➔ TRANSMIT ➔ EDGE DECISION ➔ QUANTUM ML ➔ CLOUD TWIN',
+        node1: {
+          badge: 'STAGE 1',
+          title: 'SENSING & EDGE HARDWARE',
+          sub: 'Environment & Machinery',
+          callout1: '100Hz Multi-Modal Sampling',
+          callout2: 'ESP32-S3 Dual-Core Xtensa',
+          actionTitle: 'Raw Telemetry Stream',
+          action1: 'DHT22 Temp • MQ-135 Gas',
+          action2: 'ADXL345 3-Axis Vibration',
+          cardTitle: '1. Physical Sensor Acquisition',
+          cardSub: 'ESP32-S3 Hardware Layer @ 100Hz',
+          b1Title: 'Environmental Transducers: DHT22 & MQ-135',
+          b1Desc: 'Continuous ambient temperature (±0.5°C), humidity, and toxic gas (CH₄, CO, air quality) detection.',
+          b2Title: 'Kinematic Machine Monitoring: ADXL345',
+          b2Desc: '3-Axis vibration spectrum (±16g) capturing bearing imbalance, motor cavitation, and seismic shocks.',
+          b3Title: 'Sub-80ms Hardware Trip Interlock',
+          b3Desc: 'Direct optocoupled safety power relays disconnect 415V motor contactors locally upon hazard breach.'
+        },
+        node2: {
+          badge: 'STAGE 2',
+          title: 'POST-QUANTUM CRYPTO',
+          sub: 'NIST FIPS 203 / 204',
+          callout1: 'Lattice-Based Zero Trust',
+          callout2: 'Anti-Quantum Protection',
+          actionTitle: 'Lattice Encapsulation',
+          action1: 'ML-KEM-768 Key Exchange',
+          action2: 'ML-DSA-65 Trip Signatures',
+          cardTitle: '2. Post-Quantum Cryptography',
+          cardSub: 'NIST FIPS 203/204 Security Layer',
+          b1Title: 'ML-KEM-768 Lattice Key Encapsulation',
+          b1Desc: 'Module-Lattice KEM producing 32-byte shared secrets to defeat \'Harvest Now, Decrypt Later\' attacks.',
+          b2Title: 'ML-DSA-65 Digital Signatures',
+          b2Desc: 'Lattice-based digital signatures on all emergency breaker trip commands and firmware payloads.',
+          b3Title: 'Silicon Hardware Root-of-Trust',
+          b3Desc: 'ESP32-S3 eFuse hardware key storage, AES-256-GCM cipher, and monotonic sequence replay protection.'
+        },
+        node3: {
+          badge: 'STAGE 3',
+          title: 'MULTI-BEARER NETWORK',
+          sub: 'HF Radio, Satellite & GbE',
+          callout1: 'Disruption-Tolerant Hybrid',
+          callout2: '4-Tier Automatic Link Failover',
+          actionTitle: 'Resilient Bearer Hop',
+          action1: 'MQTT • HF Skywave AX.25',
+          action2: 'LEO SatNOGS 10-Byte Burst',
+          cardTitle: '3. Resilient Multi-Bearer Network',
+          cardSub: 'Terrestrial, HF Radio & Satellites',
+          b1Title: 'Tier 1: Terrestrial Wi-Fi 6 / GbE / 4G LTE',
+          b1Desc: 'Primary high-speed telemetry link over MQTT QoS 1 with sub-20ms latency and 100Hz data stream.',
+          b2Title: 'Tier 2: Emergency HF Packet Radio (3-30MHz)',
+          b2Desc: 'Long-range ionospheric skywave transmission using AX.25/ALE packets spanning 500+ km in cable cuts.',
+          b3Title: 'Tier 3: LEO Satellite Burst Connectivity',
+          b3Desc: 'Compact 10-byte/64-byte binary SBD bursts via SatNOGS/TinyGS ground station adapters in blackouts.'
+        },
+        node4: {
+          badge: 'STAGE 4',
+          title: 'EDGE BRAIN & ALGORITHMS',
+          sub: 'Raspberry Pi 4/5 Core',
+          callout1: 'Deterministic Edge Inference',
+          callout2: 'Bayesian Trust & Dynamic A*',
+          actionTitle: 'Deterministic Safety Trip',
+          action1: 'Explainable Risk: 0-100',
+          action2: 'Dynamic Safe Egress Ribbon',
+          cardTitle: '4. Edge Brain & Safety Engine',
+          cardSub: 'Raspberry Pi 4/5 Autonomous Unit',
+          b1Title: 'Bayesian Sensor Trust Engine (4 Badges)',
+          b1Desc: 'Kalman filtering and rate-of-rise (Δ/Δt) tracking discard sensor drift; rejects faulty inputs (<20%).',
+          b2Title: 'Deterministic Explainable Risk Engine',
+          b2Desc: 'Multi-sensor cross-correlation computes 0-100 risk; executes hardware trip locally in <80ms.',
+          b3Title: 'Dynamic A* Vector Pathfinding',
+          b3Desc: 'Calculates real-time obstacle-free evacuation corridors steering workers away from hazard plumes.'
+        },
+        node5: {
+          badge: 'STAGE 5',
+          title: 'QUANTUM MACHINE LEARNING',
+          sub: 'VQC / QSVM Anomaly Engine',
+          callout1: 'Parameterized Quantum Circuits',
+          callout2: 'Hilbert Space Non-Linear Mapping',
+          actionTitle: 'Quantum Feature Analysis',
+          action1: 'Exponential Feature Capacity',
+          action2: 'Predictive RUL Estimation',
+          cardTitle: '5. Quantum Machine Learning (QML)',
+          cardSub: 'VQC / QSVM Anomaly Classification',
+          b1Title: 'Multi-Qubit Parameterized Circuits (PQC)',
+          b1Desc: 'Encodes 100Hz vibration FFT and gas trajectories into multi-qubit states using Angle/Amplitude maps.',
+          b2Title: 'Exponential Non-Linear Feature Separation',
+          b2Desc: 'Quantum kernel trick detects subtle mechanical micro-fissures hidden within high-noise environments.',
+          b3Title: 'Hybrid Edge-to-QPU Predictive Pipeline',
+          b3Desc: 'Edge TinyML Autoencoders filter routine noise; cloud quantum simulator estimates Remaining Useful Life.'
+        },
+        node6: {
+          badge: 'STAGE 6',
+          title: 'CLOUD LAKE & 3D TWIN',
+          sub: 'Three.js & Enterprise EOC',
+          callout1: 'SQLite WAL & TimescaleDB',
+          callout2: 'Live Spatial 3D Digital Twin',
+          actionTitle: 'Enterprise Synchronization',
+          action1: 'Three.js 60 FPS Digital Twin',
+          action2: 'SAP / ERP & DGMS Audits',
+          cardTitle: '6. Cloud Lake, Twin & Enterprise',
+          cardSub: 'Three.js WebGL & DGMS Compliance',
+          b1Title: 'Dual-Storage Database Architecture',
+          b1Desc: 'Zero-latency local SQLite WAL edge storage synchronizes securely with Cloud TimescaleDB / BigQuery.',
+          b2Title: 'Real-Time 3D Spatial Digital Twin',
+          b2Desc: 'Three.js WebGL engine renders isometric plant replica, volumetric hazard bubbles, and worker heatmaps.',
+          b3Title: 'Enterprise SAP / ERP & Statutory Audits',
+          b3Desc: 'Automates predictive maintenance work orders & exports unalterable audit logs for DGMS/NDMA compliance.'
+        }
+      },
+      {
+        id: 'disaster_response',
+        title: 'Emergency & Blackout Flow',
+        headerLabel: 'Disaster Containment Lifecycle: HAZARD SPIKE ➔ PQC TRIP ➔ HF/SATELLITE BACKUP ➔ SUB-80MS ISOLATION ➔ 3D EGRESS',
+        node1: {
+          badge: 'STAGE 1',
+          title: 'HAZARD TRIGGER & TRIPPING',
+          sub: 'Over-Temp / Methane Leak',
+          callout1: 'Physical Hazard Injected',
+          callout2: 'DHT22 >75°C & MQ-135 >650ppm',
+          actionTitle: 'Emergency Event Spike',
+          action1: 'ΔADC/Δt Exceeds Threshold',
+          action2: 'Seismic Shock Triggered',
+          cardTitle: '1. Rapid Hazard Detection',
+          cardSub: 'Transducer Spike Under 10ms',
+          b1Title: 'Multi-Sensor Toxic Surge Detection',
+          b1Desc: 'Simultaneous detection of methane pocket breach and runaway motor bearing overheating (>85°C).',
+          b2Title: 'ADXL345 Seismic & Collapse Shock',
+          b2Desc: 'Captures shockwaves from rockbursts or structural cave-ins with instant peak acceleration logging.',
+          b3Title: 'Hardware Contact Isolation Trigger',
+          b3Desc: 'ESP32 arming signal primes optocoupled relay for deterministic trip cutoff within 80 milliseconds.'
+        },
+        node2: {
+          badge: 'STAGE 2',
+          title: 'QUANTUM SIGNED ALERT',
+          sub: 'ML-DSA-65 Command Frame',
+          callout1: 'Tamper-Proof Emergency Alert',
+          callout2: 'Spoofing & Replay Attack Defense',
+          actionTitle: 'Signed Alert Envelope',
+          action1: 'ML-DSA-65 Signed Payload',
+          action2: 'Monotonic Sequence Stamped',
+          cardTitle: '2. Cryptographic Integrity',
+          cardSub: 'Zero-Trust Emergency Frame',
+          b1Title: 'Anti-Spoofing Hazard Validation',
+          b1Desc: 'Emergency packet signed with NIST ML-DSA-65 lattice keys prevents hostile spoofing or false alarm alarms.',
+          b2Title: 'Anti-Replay Epoch Protection',
+          b2Desc: 'Monotonic sequence counters prevent replay of stale emergency packets across congested networks.',
+          b3Title: 'Post-Quantum Encapsulation',
+          b3Desc: 'ML-KEM-768 guarantees confidentiality of high-consequence industrial shutdown telemetry.'
+        },
+        node3: {
+          badge: 'STAGE 3',
+          title: 'BLACKOUT RADIO / SAT FAILOVER',
+          sub: 'Backhaul Fiber Severed',
+          callout1: 'Fiber Cut Detected',
+          callout2: 'Auto-Hop to HF Skywave & LEO',
+          actionTitle: 'Autonomous Failover',
+          action1: '7.105 MHz AX.25 Frame Transmit',
+          action2: 'LEO Satellite Burst Uplink',
+          cardTitle: '3. Disaster RF & Orbital Link',
+          cardSub: 'Disruption-Tolerant Radio Backup',
+          b1Title: 'Instant Fiber Severance Detection',
+          b1Desc: 'Heartbeat timeout (<1.5s) prompts automatic router failover from GbE to emergency radio links.',
+          b2Title: 'HF Ionospheric Skywave Radio (7MHz)',
+          b2Desc: 'Bypasses broken local telephone towers; broadcasts AX.25 packets directly to regional headquarters.',
+          b3Title: 'LEO Satellite Emergency SBD Burst',
+          b3Desc: 'Compresses incident summary into a 10-byte binary payload beamed to orbital satellites in view.'
+        },
+        node4: {
+          badge: 'STAGE 4',
+          title: 'EDGE BRAIN TRIP & EVACUATION',
+          sub: 'Sub-80ms Relay Cutoff',
+          callout1: 'Risk Score Hits 95/100',
+          callout2: 'Sub-80ms Relay Cut & 110dB Siren',
+          actionTitle: 'Autonomous Containment',
+          action1: '415V Breaker Tripped (<80ms)',
+          action2: 'A* Safe Egress Ribbon Drawn',
+          cardTitle: '4. Autonomous Edge Protection',
+          cardSub: 'Zero Cloud Dependency Trip',
+          b1Title: 'Sub-80ms Physical Contactor Cutoff',
+          b1Desc: 'Raspberry Pi activates relay shield, extinguishing electrical arc risks in methane atmospheres.',
+          b2Title: '110dB Acoustic Evacuation Strobe',
+          b2Desc: 'Triggers multi-frequency sounders directing miners towards verified fresh-air intake shafts.',
+          b3Title: 'Dynamic A* Hazard Corridor Bypass',
+          b3Desc: 'Vector navigation continuously steers evacuation routes away from expanding hazardous gas bubbles.'
+        },
+        node5: {
+          badge: 'STAGE 5',
+          title: 'QUANTUM FAULT DIAGNOSIS',
+          sub: 'Runaway vs Mechanical Wear',
+          callout1: 'VQC Quantum Kernel Execution',
+          callout2: '99.4% Multi-Class Accuracy',
+          actionTitle: 'Quantum Classification',
+          action1: 'Catastrophic Runaway Confirmed',
+          action2: 'RUL Prediction: 0.0 Hours',
+          cardTitle: '5. Quantum Anomaly Diagnosis',
+          cardSub: 'Hilbert Space Micro-Analysis',
+          b1Title: 'Bearing Race vs Sensor Drift Separation',
+          b1Desc: 'VQC separates high-temperature thermal drift from critical cage deformation with zero ambiguity.',
+          b2Title: 'Remaining Useful Life (RUL) Zeroing',
+          b2Desc: 'Calculates imminent shaft seizure probability, preventing catastrophic turbine flywheel disintegration.',
+          b3Title: 'Post-Event Quantum Fingerprint',
+          b3Desc: 'Embeds multi-dimensional vibration phase into quantum state for forensic post-disaster evaluation.'
+        },
+        node6: {
+          badge: 'STAGE 6',
+          title: 'EOC BLACKBOX & RESCUE HUD',
+          sub: 'SQLite WAL & Incident Audit',
+          callout1: 'Offline Blackbox Buffered',
+          callout2: 'Live 3D Rescue HUD Displayed',
+          actionTitle: 'Disaster Recovery Sync',
+          action1: 'SQLite WAL Synchronized',
+          action2: 'Statutory DGMS Incident Log',
+          cardTitle: '6. Disaster Command & Recovery',
+          cardSub: 'Rescue HUD & Statutory Audit',
+          b1Title: 'Zero-Loss SQLite WAL Store-and-Forward',
+          b1Desc: 'Buffers all sensor frames on local solid-state flash until satellite or terrestrial links recover.',
+          b2Title: '3D Spatial HUD for Rescue Teams',
+          b2Desc: 'Provides incident commanders with volumetric 3D hazard maps and trapped personnel beacons.',
+          b3Title: 'Statutory Post-Disaster Audit Export',
+          b3Desc: 'Generates un-tampered cryptographic JSON blackbox logs meeting DGMS mandatory inquiry standards.'
+        }
+      }
+    ];
+
+    let currentScenarioIndex = 0;
+    let focusedStageIndex = 0; // 0 = all, 1..6 = specific stage
+
+    function renderSvg() {
+      const data = scenarios[currentScenarioIndex];
+      document.getElementById('currentScenarioText').innerText = data.title;
+      document.getElementById('scenarioHeaderLabel').innerText = data.headerLabel;
+
+      // Coordinate mapping for 6 nodes across 2000px:
+      // Node 1: 170
+      // Node 2: 500
+      // Node 3: 830
+      // Node 4: 1170
+      // Node 5: 1500
+      // Node 6: 1830
+
+      const content = `
+        <!-- WORKFLOW CONNECTING CURVED PATHS WITH ARROWS -->
+        <!-- Curve 1 -> 2 -->
+        <path d="M 235 220 C 290 205, 335 235, 430 220" fill="none" stroke="var(--curve-color, #1e293b)" stroke-width="2.5" marker-end="url(#mArrow)"/>
+        <!-- Curve 2 -> 3 -->
+        <path d="M 570 220 C 625 205, 670 235, 760 220" fill="none" stroke="var(--curve-color, #1e293b)" stroke-width="2.5" marker-end="url(#mArrow)"/>
+        <!-- Curve 3 -> 4 -->
+        <path d="M 900 220 C 960 205, 1010 235, 1100 220" fill="none" stroke="var(--curve-color, #1e293b)" stroke-width="2.5" marker-end="url(#mArrow)"/>
+        <!-- Curve 4 -> 5 -->
+        <path d="M 1240 220 C 1300 205, 1345 235, 1430 220" fill="none" stroke="var(--curve-color, #1e293b)" stroke-width="2.5" marker-end="url(#mArrow)"/>
+        <!-- Curve 5 -> 6 -->
+        <path d="M 1570 220 C 1630 205, 1675 235, 1760 220" fill="none" stroke="var(--curve-color, #1e293b)" stroke-width="2.5" marker-end="url(#mArrow)"/>
+
+        <!-- Dashed vertical connectors to bottom spec cards -->
+        <path d="M 170 270 L 170 380" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.8" stroke-dasharray="5 5"/>
+        <path d="M 500 270 L 500 380" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.8" stroke-dasharray="5 5"/>
+        <path d="M 830 270 L 830 380" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.8" stroke-dasharray="5 5"/>
+        <path d="M 1170 270 L 1170 380" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.8" stroke-dasharray="5 5"/>
+        <path d="M 1500 270 L 1500 380" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.8" stroke-dasharray="5 5"/>
+        <path d="M 1830 270 L 1830 380" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.8" stroke-dasharray="5 5"/>
+
+        <!-- ==================== STAGE 1: SENSORS & MACHINE TELEMETRY ==================== -->
+        <g id="stageGroup1" opacity="${focusedStageIndex === 0 || focusedStageIndex === 1 ? '1' : '0.25'}" style="transition: opacity 0.3s ease;">
+          <!-- Top Callout -->
+          <g transform="translate(45, 90)">
+            <rect x="0" y="0" width="250" height="58" rx="10" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#shadowBox)"/>
+            <!-- Sensor Wave Icon -->
+            <circle cx="28" cy="29" r="14" fill="#eff6ff"/>
+            <path d="M 22 29 Q 25 21 28 29 Q 31 37 34 29" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+            <text x="52" y="25" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node1.callout1}</text>
+            <text x="52" y="42" fill="var(--text-muted, #475569)" font-size="11" font-weight="600">${data.node1.callout2}</text>
+          </g>
+          <path d="M 170 148 L 170 170" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+          <!-- Number badge ① -->
+          <circle cx="115" cy="200" r="13" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+          <text x="115" y="205" fill="var(--text-main, #0f172a)" font-size="13" font-weight="900" text-anchor="middle">1</text>
+
+          <!-- Node 1 Visual Illustration: Industrial Machine & Sensor Cluster -->
+          <g transform="translate(135, 172)">
+            <!-- Machine Body -->
+            <rect x="6" y="16" width="34" height="24" rx="4" fill="#334155"/>
+            <rect x="12" y="10" width="22" height="6" rx="2" fill="#64748b"/>
+            <!-- Motor Rotating Core -->
+            <circle cx="23" cy="28" r="7" fill="#0ea5e9"/>
+            <circle cx="23" cy="28" r="3" fill="#ffffff"/>
+            <!-- Sensor Probe (DHT22 / MQ-135) -->
+            <rect x="42" y="14" width="14" height="22" rx="3" fill="#3b82f6"/>
+            <line x1="45" y1="18" x2="53" y2="18" stroke="#ffffff" stroke-width="1.5"/>
+            <line x1="45" y1="22" x2="53" y2="22" stroke="#ffffff" stroke-width="1.5"/>
+            <line x1="45" y1="26" x2="53" y2="26" stroke="#ffffff" stroke-width="1.5"/>
+            <circle cx="49" cy="31" r="1.5" fill="#22c55e"/>
+            <!-- Tripping Contact Relay -->
+            <circle cx="5" cy="28" r="4" fill="#ef4444"/>
+          </g>
+          <text x="170" y="246" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800" text-anchor="middle">${data.node1.title}</text>
+          <text x="170" y="263" fill="var(--text-muted, #475569)" font-size="11" font-weight="600" text-anchor="middle">${data.node1.sub}</text>
+
+          <!-- Mid Action 1 -->
+          <g transform="translate(290, 194)">
+            <rect x="10" y="0" width="40" height="26" rx="5" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+            <path d="M 18 13 L 24 13 M 28 8 L 34 8 M 28 18 L 38 18" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+            <text x="30" y="40" fill="var(--text-main, #0f172a)" font-size="11.5" font-weight="800" text-anchor="middle">${data.node1.actionTitle}</text>
+            <text x="30" y="53" fill="var(--text-muted, #475569)" font-size="10" font-weight="600" text-anchor="middle">${data.node1.action1}</text>
+            <text x="30" y="65" fill="var(--text-muted, #475569)" font-size="10" font-weight="600" text-anchor="middle">${data.node1.action2}</text>
+          </g>
+
+          <!-- Bottom Spec Card 1 -->
+          <g transform="translate(30, 380)">
+            <rect x="0" y="0" width="295" height="255" rx="12" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#shadowBox)"/>
+            <rect x="0" y="0" width="295" height="42" rx="12" fill="rgba(37,99,235,0.08)"/>
+            <text x="18" y="26" fill="#2563eb" font-size="13" font-weight="800">${data.node1.cardTitle}</text>
+            
+            <g transform="translate(16, 56)">
+              <circle cx="6" cy="7" r="3.5" fill="#2563eb"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node1.b1Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node1.b1Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node1.b1Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="116" x2="279" y2="116" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 126)">
+              <circle cx="6" cy="7" r="3.5" fill="#0284c7"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node1.b2Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node1.b2Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node1.b2Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="186" x2="279" y2="186" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 196)">
+              <circle cx="6" cy="7" r="3.5" fill="#ef4444"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node1.b3Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node1.b3Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node1.b3Desc.substring(42)}</text>
+            </g>
+          </g>
+        </g>
+
+        <!-- ==================== STAGE 2: POST-QUANTUM CRYPTOGRAPHY ==================== -->
+        <g id="stageGroup2" opacity="${focusedStageIndex === 0 || focusedStageIndex === 2 ? '1' : '0.25'}" style="transition: opacity 0.3s ease;">
+          <!-- Top Callout -->
+          <g transform="translate(380, 90)">
+            <rect x="0" y="0" width="250" height="58" rx="10" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#shadowBox)"/>
+            <circle cx="28" cy="29" r="14" fill="#f0fdf4"/>
+            <path d="M 28 20 L 35 24 L 35 32 C 35 37 28 40 28 40 C 28 40 21 37 21 32 L 21 24 Z" fill="#10b981"/>
+            <text x="52" y="25" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node2.callout1}</text>
+            <text x="52" y="42" fill="var(--text-muted, #475569)" font-size="11" font-weight="600">${data.node2.callout2}</text>
+          </g>
+          <path d="M 500 148 L 500 170" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+          <!-- Number badge ② -->
+          <circle cx="445" cy="200" r="13" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+          <text x="445" y="205" fill="var(--text-main, #0f172a)" font-size="13" font-weight="900" text-anchor="middle">2</text>
+
+          <!-- Node 2 Visual Illustration: PQC Lattice Shield & Silicon eFuse -->
+          <g transform="translate(470, 172)">
+            <!-- Lattice Shield Shape -->
+            <path d="M 30 6 L 50 14 L 50 32 C 50 44 30 52 30 52 C 30 52 10 44 10 32 L 10 14 Z" fill="url(#shieldGrad)" filter="url(#glowPulse)"/>
+            <!-- Inner Lattice Grid -->
+            <line x1="20" y1="20" x2="40" y2="36" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="40" y1="20" x2="20" y2="36" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="30" cy="28" r="4" fill="#ffffff"/>
+            <!-- Keyhole -->
+            <circle cx="30" cy="26" r="2" fill="#047857"/>
+            <rect x="29" y="27" width="2" height="4" fill="#047857"/>
+          </g>
+          <text x="500" y="246" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800" text-anchor="middle">${data.node2.title}</text>
+          <text x="500" y="263" fill="var(--text-muted, #475569)" font-size="11" font-weight="600" text-anchor="middle">${data.node2.sub}</text>
+
+          <!-- Mid Action 2 -->
+          <g transform="translate(625, 194)">
+            <rect x="10" y="0" width="40" height="26" rx="5" fill="#f0fdf4" stroke="#10b981" stroke-width="1.8"/>
+            <circle cx="30" cy="13" r="6" fill="none" stroke="#10b981" stroke-width="1.8"/>
+            <polyline points="27,13 29,15 34,10" fill="none" stroke="#10b981" stroke-width="1.8"/>
+            <text x="30" y="40" fill="var(--text-main, #0f172a)" font-size="11.5" font-weight="800" text-anchor="middle">${data.node2.actionTitle}</text>
+            <text x="30" y="53" fill="var(--text-muted, #475569)" font-size="10" font-weight="600" text-anchor="middle">${data.node2.action1}</text>
+            <text x="30" y="65" fill="var(--text-muted, #475569)" font-size="10" font-weight="600" text-anchor="middle">${data.node2.action2}</text>
+          </g>
+
+          <!-- Bottom Spec Card 2 -->
+          <g transform="translate(355, 380)">
+            <rect x="0" y="0" width="295" height="255" rx="12" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#shadowBox)"/>
+            <rect x="0" y="0" width="295" height="42" rx="12" fill="rgba(16,185,129,0.08)"/>
+            <text x="18" y="26" fill="#10b981" font-size="13" font-weight="800">${data.node2.cardTitle}</text>
+            
+            <g transform="translate(16, 56)">
+              <circle cx="6" cy="7" r="3.5" fill="#10b981"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node2.b1Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node2.b1Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node2.b1Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="116" x2="279" y2="116" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 126)">
+              <circle cx="6" cy="7" r="3.5" fill="#059669"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node2.b2Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node2.b2Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node2.b2Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="186" x2="279" y2="186" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 196)">
+              <circle cx="6" cy="7" r="3.5" fill="#047857"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node2.b3Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node2.b3Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node2.b3Desc.substring(42)}</text>
+            </g>
+          </g>
+        </g>
+
+        <!-- ==================== STAGE 3: MULTI-BEARER NETWORK (HF & SATELLITE) ==================== -->
+        <g id="stageGroup3" opacity="${focusedStageIndex === 0 || focusedStageIndex === 3 ? '1' : '0.25'}" style="transition: opacity 0.3s ease;">
+          <!-- Top Callout -->
+          <g transform="translate(710, 90)">
+            <rect x="0" y="0" width="250" height="58" rx="10" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#shadowBox)"/>
+            <circle cx="28" cy="29" r="14" fill="#f0f9ff"/>
+            <path d="M 22 34 L 28 22 L 34 34 Z" fill="none" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="28" cy="22" r="2.5" fill="#0284c7"/>
+            <path d="M 20 20 Q 28 14 36 20" fill="none" stroke="#0284c7" stroke-width="1.8"/>
+            <text x="52" y="25" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node3.callout1}</text>
+            <text x="52" y="42" fill="var(--text-muted, #475569)" font-size="11" font-weight="600">${data.node3.callout2}</text>
+          </g>
+          <path d="M 830 148 L 830 170" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+          <!-- Number badge ③ -->
+          <circle cx="775" cy="200" r="13" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+          <text x="775" y="205" fill="var(--text-main, #0f172a)" font-size="13" font-weight="900" text-anchor="middle">3</text>
+
+          <!-- Node 3 Visual Illustration: HF Ham Tower & LEO Satellite -->
+          <g transform="translate(800, 168)">
+            <!-- Radio Tower / Mast -->
+            <polygon points="18,12 8,48 28,48" fill="none" stroke="#0284c7" stroke-width="2"/>
+            <line x1="12" y1="36" x2="24" y2="36" stroke="#0284c7" stroke-width="1.8"/>
+            <line x1="15" y1="24" x2="21" y2="24" stroke="#0284c7" stroke-width="1.8"/>
+            <circle cx="18" cy="10" r="3" fill="#ef4444"/>
+            <path d="M 12 7 Q 18 2 24 7" fill="none" stroke="#0ea5e9" stroke-width="1.8"/>
+            <path d="M 9 4 Q 18 -2 27 4" fill="none" stroke="#0ea5e9" stroke-width="1.8"/>
+
+            <!-- LEO Satellite Body -->
+            <g transform="translate(36, 6) rotate(15)">
+              <rect x="0" y="8" width="16" height="12" rx="2" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+              <!-- Solar Panels Left & Right -->
+              <rect x="-14" y="9" width="12" height="10" fill="#0284c7" stroke="#38bdf8" stroke-width="1"/>
+              <line x1="-8" y1="9" x2="-8" y2="19" stroke="#ffffff" stroke-width="0.8"/>
+              <rect x="18" y="9" width="12" height="10" fill="#0284c7" stroke="#38bdf8" stroke-width="1"/>
+              <line x1="24" y1="9" x2="24" y2="19" stroke="#ffffff" stroke-width="0.8"/>
+              <!-- Downlink Beam -->
+              <path d="M 8 20 L 2 30 M 8 20 L 14 30" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="2 2"/>
+            </g>
+          </g>
+          <text x="830" y="246" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800" text-anchor="middle">${data.node3.title}</text>
+          <text x="830" y="263" fill="var(--text-muted, #475569)" font-size="11" font-weight="600" text-anchor="middle">${data.node3.sub}</text>
+
+          <!-- Mid Action 3 -->
+          <g transform="translate(960, 194)">
+            <rect x="10" y="0" width="40" height="26" rx="5" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.8"/>
+            <path d="M 17 13 L 43 13" stroke="#0284c7" stroke-width="2"/>
+            <polyline points="37,8 43,13 37,18" fill="none" stroke="#0284c7" stroke-width="2"/>
+            <text x="30" y="40" fill="var(--text-main, #0f172a)" font-size="11.5" font-weight="800" text-anchor="middle">${data.node3.actionTitle}</text>
+            <text x="30" y="53" fill="var(--text-muted, #475569)" font-size="10" font-weight="600" text-anchor="middle">${data.node3.action1}</text>
+            <text x="30" y="65" fill="var(--text-muted, #475569)" font-size="10" font-weight="600" text-anchor="middle">${data.node3.action2}</text>
+          </g>
+
+          <!-- Bottom Spec Card 3 -->
+          <g transform="translate(680, 380)">
+            <rect x="0" y="0" width="295" height="255" rx="12" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#shadowBox)"/>
+            <rect x="0" y="0" width="295" height="42" rx="12" fill="rgba(2,132,199,0.08)"/>
+            <text x="18" y="26" fill="#0284c7" font-size="13" font-weight="800">${data.node3.cardTitle}</text>
+            
+            <g transform="translate(16, 56)">
+              <circle cx="6" cy="7" r="3.5" fill="#0284c7"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node3.b1Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node3.b1Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node3.b1Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="116" x2="279" y2="116" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 126)">
+              <circle cx="6" cy="7" r="3.5" fill="#0284c7"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node3.b2Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node3.b2Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node3.b2Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="186" x2="279" y2="186" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 196)">
+              <circle cx="6" cy="7" r="3.5" fill="#38bdf8"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node3.b3Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node3.b3Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node3.b3Desc.substring(42)}</text>
+            </g>
+          </g>
+        </g>
+
+        <!-- ==================== STAGE 4: EDGE BRAIN & DETERMINISTIC ALGORITHMS ==================== -->
+        <g id="stageGroup4" opacity="${focusedStageIndex === 0 || focusedStageIndex === 4 ? '1' : '0.25'}" style="transition: opacity 0.3s ease;">
+          <!-- Top Callout -->
+          <g transform="translate(1045, 90)">
+            <rect x="0" y="0" width="250" height="58" rx="10" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#shadowBox)"/>
+            <circle cx="28" cy="29" r="14" fill="#fffbeb"/>
+            <rect x="18" y="19" width="20" height="20" rx="3" fill="#d97706"/>
+            <circle cx="28" cy="29" r="4" fill="#ffffff"/>
+            <text x="52" y="25" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node4.callout1}</text>
+            <text x="52" y="42" fill="var(--text-muted, #475569)" font-size="11" font-weight="600">${data.node4.callout2}</text>
+          </g>
+          <path d="M 1170 148 L 1170 170" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+          <!-- Number badge ④ -->
+          <circle cx="1115" cy="200" r="13" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+          <text x="1115" y="205" fill="var(--text-main, #0f172a)" font-size="13" font-weight="900" text-anchor="middle">4</text>
+
+          <!-- Node 4 Visual Illustration: Raspberry Pi Edge Brain & Algorithm Matrix -->
+          <g transform="translate(1140, 168)">
+            <!-- Circuit Board (Green/Dark) -->
+            <rect x="4" y="6" width="52" height="42" rx="5" fill="#047857" stroke="#10b981" stroke-width="1.5"/>
+            <!-- SoC Processor -->
+            <rect x="14" y="14" width="20" height="20" rx="2" fill="#0f172a" stroke="#d97706" stroke-width="1.5"/>
+            <circle cx="24" cy="24" r="4" fill="#d97706"/>
+            <!-- GPIO Header -->
+            <line x1="42" y1="10" x2="42" y2="44" stroke="#fbbf24" stroke-width="2" stroke-dasharray="2 2"/>
+            <line x1="46" y1="10" x2="46" y2="44" stroke="#fbbf24" stroke-width="2" stroke-dasharray="2 2"/>
+            <!-- USB Ports -->
+            <rect x="2" y="10" width="4" height="10" fill="#94a3b8"/>
+            <rect x="2" y="26" width="4" height="10" fill="#94a3b8"/>
+          </g>
+          <text x="1170" y="246" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800" text-anchor="middle">${data.node4.title}</text>
+          <text x="1170" y="263" fill="var(--text-muted, #475569)" font-size="11" font-weight="600" text-anchor="middle">${data.node4.sub}</text>
+
+          <!-- Mid Action 4 -->
+          <g transform="translate(1295, 194)">
+            <rect x="10" y="0" width="40" height="26" rx="5" fill="#fffbeb" stroke="#d97706" stroke-width="1.8"/>
+            <polygon points="30,6 38,20 22,20" fill="#d97706"/>
+            <line x1="30" y1="11" x2="30" y2="15" stroke="#ffffff" stroke-width="1.5"/>
+            <circle cx="30" cy="18" r="0.8" fill="#ffffff"/>
+            <text x="30" y="40" fill="var(--text-main, #0f172a)" font-size="11.5" font-weight="800" text-anchor="middle">${data.node4.actionTitle}</text>
+            <text x="30" y="53" fill="var(--text-muted, #475569)" font-size="10" font-weight="600" text-anchor="middle">${data.node4.action1}</text>
+            <text x="30" y="65" fill="var(--text-muted, #475569)" font-size="10" font-weight="600" text-anchor="middle">${data.node4.action2}</text>
+          </g>
+
+          <!-- Bottom Spec Card 4 -->
+          <g transform="translate(1005, 380)">
+            <rect x="0" y="0" width="295" height="255" rx="12" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#shadowBox)"/>
+            <rect x="0" y="0" width="295" height="42" rx="12" fill="rgba(217,119,6,0.08)"/>
+            <text x="18" y="26" fill="#d97706" font-size="13" font-weight="800">${data.node4.cardTitle}</text>
+            
+            <g transform="translate(16, 56)">
+              <circle cx="6" cy="7" r="3.5" fill="#d97706"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node4.b1Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node4.b1Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node4.b1Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="116" x2="279" y2="116" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 126)">
+              <circle cx="6" cy="7" r="3.5" fill="#ea580c"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node4.b2Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node4.b2Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node4.b2Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="186" x2="279" y2="186" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 196)">
+              <circle cx="6" cy="7" r="3.5" fill="#b45309"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node4.b3Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node4.b3Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node4.b3Desc.substring(42)}</text>
+            </g>
+          </g>
+        </g>
+
+        <!-- ==================== STAGE 5: QUANTUM MACHINE LEARNING (QML) ==================== -->
+        <g id="stageGroup5" opacity="${focusedStageIndex === 0 || focusedStageIndex === 5 ? '1' : '0.25'}" style="transition: opacity 0.3s ease;">
+          <!-- Top Callout -->
+          <g transform="translate(1375, 90)">
+            <rect x="0" y="0" width="250" height="58" rx="10" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#shadowBox)"/>
+            <circle cx="28" cy="29" r="14" fill="#faf5ff"/>
+            <circle cx="28" cy="29" r="7" fill="none" stroke="#9333ea" stroke-width="2"/>
+            <ellipse cx="28" cy="29" rx="11" ry="4" fill="none" stroke="#a855f7" stroke-width="1.5"/>
+            <circle cx="28" cy="29" r="2.5" fill="#9333ea"/>
+            <text x="52" y="25" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node5.callout1}</text>
+            <text x="52" y="42" fill="var(--text-muted, #475569)" font-size="11" font-weight="600">${data.node5.callout2}</text>
+          </g>
+          <path d="M 1500 148 L 1500 170" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+          <!-- Number badge ⑤ -->
+          <circle cx="1445" cy="200" r="13" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+          <text x="1445" y="205" fill="var(--text-main, #0f172a)" font-size="13" font-weight="900" text-anchor="middle">5</text>
+
+          <!-- Node 5 Visual Illustration: Quantum Atom & Bloch Sphere Circuit -->
+          <g transform="translate(1470, 168)">
+            <!-- Central Qubit Core -->
+            <circle cx="30" cy="26" r="10" fill="url(#quantumGlow)" filter="url(#glowPulse)"/>
+            <circle cx="30" cy="26" r="4" fill="#ffffff"/>
+            <!-- Orbital Energy Rings -->
+            <ellipse cx="30" cy="26" rx="26" ry="9" fill="none" stroke="#06b6d4" stroke-width="1.8" transform="rotate(-25 30 26)"/>
+            <ellipse cx="30" cy="26" rx="26" ry="9" fill="none" stroke="#a855f7" stroke-width="1.8" transform="rotate(35 30 26)"/>
+            <!-- Qubit Nodes on Rings -->
+            <circle cx="48" cy="18" r="3" fill="#06b6d4"/>
+            <circle cx="12" cy="34" r="3" fill="#c084fc"/>
+          </g>
+          <text x="1500" y="246" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800" text-anchor="middle">${data.node5.title}</text>
+          <text x="1500" y="263" fill="var(--text-muted, #475569)" font-size="11" font-weight="600" text-anchor="middle">${data.node5.sub}</text>
+
+          <!-- Mid Action 5 -->
+          <g transform="translate(1625, 194)">
+            <rect x="10" y="0" width="40" height="26" rx="5" fill="#faf5ff" stroke="#9333ea" stroke-width="1.8"/>
+            <path d="M 18 20 C 24 10, 32 10, 38 20" fill="none" stroke="#9333ea" stroke-width="2"/>
+            <circle cx="28" cy="13" r="2" fill="#9333ea"/>
+            <text x="30" y="40" fill="var(--text-main, #0f172a)" font-size="11.5" font-weight="800" text-anchor="middle">${data.node5.actionTitle}</text>
+            <text x="30" y="53" fill="var(--text-muted, #475569)" font-size="10" font-weight="600" text-anchor="middle">${data.node5.action1}</text>
+            <text x="30" y="65" fill="var(--text-muted, #475569)" font-size="10" font-weight="600" text-anchor="middle">${data.node5.action2}</text>
+          </g>
+
+          <!-- Bottom Spec Card 5 -->
+          <g transform="translate(1330, 380)">
+            <rect x="0" y="0" width="295" height="255" rx="12" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#shadowBox)"/>
+            <rect x="0" y="0" width="295" height="42" rx="12" fill="rgba(147,51,234,0.08)"/>
+            <text x="18" y="26" fill="#9333ea" font-size="13" font-weight="800">${data.node5.cardTitle}</text>
+            
+            <g transform="translate(16, 56)">
+              <circle cx="6" cy="7" r="3.5" fill="#9333ea"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node5.b1Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node5.b1Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node5.b1Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="116" x2="279" y2="116" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 126)">
+              <circle cx="6" cy="7" r="3.5" fill="#a855f7"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node5.b2Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node5.b2Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node5.b2Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="186" x2="279" y2="186" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 196)">
+              <circle cx="6" cy="7" r="3.5" fill="#c084fc"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node5.b3Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node5.b3Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node5.b3Desc.substring(42)}</text>
+            </g>
+          </g>
+        </g>
+
+        <!-- ==================== STAGE 6: CLOUD DATABASE & 3D SPATIAL DIGITAL TWIN ==================== -->
+        <g id="stageGroup6" opacity="${focusedStageIndex === 0 || focusedStageIndex === 6 ? '1' : '0.25'}" style="transition: opacity 0.3s ease;">
+          <!-- Top Callout -->
+          <g transform="translate(1705, 90)">
+            <rect x="0" y="0" width="250" height="58" rx="10" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#shadowBox)"/>
+            <circle cx="28" cy="29" r="14" fill="#f0fdfa"/>
+            <!-- Database Cylinder & 3D Cube -->
+            <ellipse cx="28" cy="24" rx="10" ry="4" fill="#0d9488"/>
+            <path d="M 18 24 L 18 34 C 18 36 28 38 28 38 C 28 38 38 36 38 34 L 38 24 Z" fill="#14b8a6"/>
+            <text x="52" y="25" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node6.callout1}</text>
+            <text x="52" y="42" fill="var(--text-muted, #475569)" font-size="11" font-weight="600">${data.node6.callout2}</text>
+          </g>
+          <path d="M 1830 148 L 1830 170" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+          <!-- Number badge ⑥ -->
+          <circle cx="1775" cy="200" r="13" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+          <text x="1775" y="205" fill="var(--text-main, #0f172a)" font-size="13" font-weight="900" text-anchor="middle">6</text>
+
+          <!-- Node 6 Visual Illustration: Cloud Database, 3D Building & Spatial Twin -->
+          <g transform="translate(1800, 168)">
+            <!-- Cloud Icon Above -->
+            <path d="M 18 16 C 18 10 24 8 28 10 C 31 6 40 6 43 11 C 48 11 51 15 51 19 C 51 24 46 25 41 25 L 20 25 C 15 25 13 20 18 16 Z" fill="#0d9488"/>
+            <!-- 3D Isometric Chamber Box -->
+            <polygon points="30,28 50,38 30,48 10,38" fill="#14b8a6"/>
+            <polygon points="10,38 30,48 30,56 10,46" fill="#0f766e"/>
+            <polygon points="50,38 30,48 30,56 50,46" fill="#115e59"/>
+            <!-- Hazard Glow Dot inside Twin -->
+            <circle cx="30" cy="38" r="3.5" fill="#ef4444"/>
+          </g>
+          <text x="1830" y="246" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800" text-anchor="middle">${data.node6.title}</text>
+          <text x="1830" y="263" fill="var(--text-muted, #475569)" font-size="11" font-weight="600" text-anchor="middle">${data.node6.sub}</text>
+
+          <!-- Bottom Spec Card 6 -->
+          <g transform="translate(1655, 380)">
+            <rect x="0" y="0" width="295" height="255" rx="12" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#shadowBox)"/>
+            <rect x="0" y="0" width="295" height="42" rx="12" fill="rgba(13,148,136,0.08)"/>
+            <text x="18" y="26" fill="#0d9488" font-size="13" font-weight="800">${data.node6.cardTitle}</text>
+            
+            <g transform="translate(16, 56)">
+              <circle cx="6" cy="7" r="3.5" fill="#0d9488"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node6.b1Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node6.b1Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node6.b1Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="116" x2="279" y2="116" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 126)">
+              <circle cx="6" cy="7" r="3.5" fill="#14b8a6"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node6.b2Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node6.b2Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node6.b2Desc.substring(42)}</text>
+            </g>
+            <line x1="16" y1="186" x2="279" y2="186" stroke="rgba(148,163,184,0.25)" stroke-width="1.2"/>
+            <g transform="translate(16, 196)">
+              <circle cx="6" cy="7" r="3.5" fill="#0f766e"/>
+              <text x="18" y="11" fill="var(--text-main, #0f172a)" font-size="12" font-weight="800">${data.node6.b3Title}</text>
+              <text x="18" y="27" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node6.b3Desc.substring(0, 42)}</text>
+              <text x="18" y="41" fill="var(--text-muted, #475569)" font-size="10.8" font-weight="500">${data.node6.b3Desc.substring(42)}</text>
+            </g>
+          </g>
+        </g>
+      `;
+
+      document.getElementById('svgContent').innerHTML = content;
+    }
+
+    function toggleScenario() {
+      currentScenarioIndex = (currentScenarioIndex + 1) % scenarios.length;
+      focusedStageIndex = 0;
+      updateActiveTab();
+      renderSvg();
+      showToast(`Switched pipeline view to: ${scenarios[currentScenarioIndex].title}`);
+    }
+
+    function highlightStage(idx) {
+      focusedStageIndex = idx;
+      updateActiveTab();
+      renderSvg();
+      if (idx === 0) {
+        showToast("Showing all 6 architecture stages.");
+      } else {
+        showToast(`Focused on Stage ${idx}`);
+      }
+    }
+
+    function updateActiveTab() {
+      const tabs = document.querySelectorAll('.stage-tab-btn');
+      tabs.forEach((tab, index) => {
+        if (index === focusedStageIndex) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const currentTheme = body.getAttribute('data-theme');
+      const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+      body.setAttribute('data-theme', nextTheme);
+      document.getElementById('themeText').innerText = nextTheme === 'light' ? 'Dark Mode' : 'Light Mode';
+      renderSvg();
+    }
+
+    function toggleCopyDrawer() {
+      const drawer = document.getElementById('copyDrawer');
+      drawer.classList.toggle('active');
+      if (drawer.classList.contains('active')) {
+        drawer.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastMsg');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    function copyAllText() {
+      const text = `
+SENTINEL-X: COMPLETE TECHNICAL WORKFLOW & ARCHITECTURE (SIH 2026 / PS 26223)
+
+1. PHYSICAL SENSING & TRANSDUCER ACQUISITION (ESP32-S3 Hardware Layer @ 100Hz)
+- Environmental Transducers: DHT22 (Ambient temp -40°C to +80°C ±0.5°C, humidity) & MQ-135 (Hazardous gas CH4, CO, air quality ppm).
+- Kinematic Machine Monitoring: ADXL345 3-Axis vibration spectrum (±16g) capturing bearing imbalance, motor cavitation, and seismic shocks.
+- Sub-80ms Hardware Interlock: Direct optocoupled safety power relays disconnect 415V contactors locally upon hazard breach.
+
+2. POST-QUANTUM CRYPTOGRAPHY (PQC) & SILICON ROOT-OF-TRUST (NIST FIPS 203/204)
+- ML-KEM-768 Lattice Key Encapsulation: Module-Lattice KEM producing 32-byte shared secrets to defeat 'Harvest Now, Decrypt Later' attacks.
+- ML-DSA-65 Digital Signatures: Anti-tamper verification on all emergency breaker trip commands and firmware payloads.
+- Silicon Hardware Root-of-Trust: ESP32-S3 eFuse hardware key storage, AES-256-GCM cipher, and monotonic sequence replay defense.
+
+3. RESILIENT MULTI-BEARER DATA TRANSMISSION (HF Radio, Satellite & GbE)
+- Tier 1 High-Speed Backhaul: Terrestrial GbE / Wi-Fi 6 / 4G LTE with MQTT QoS 1 backhaul (<20ms latency).
+- Tier 2 Emergency HF Packet Radio: 3–30 MHz ionospheric skywave transmission using AX.25/ALE packets spanning 500+ km in cable cuts.
+- Tier 3 LEO Satellite Burst: Compact 10-byte binary SBD bursts via SatNOGS / TinyGS ground station adapters in blackouts.
+- Tier 4 Autonomous Store-and-Forward: Zero-loss local SQLite WAL and USB blackbox logging during total atmospheric outages.
+
+4. INDUSTRIAL EDGE BRAIN & DETERMINISTIC SAFETY ALGORITHMS (Raspberry Pi 4/5)
+- Bayesian Sensor Trust Engine: 4-tier truth badges (LIVE, DERIVED, SIMULATED, STALE) with Kalman rate-of-rise tracking (Δ/Δt) discarding sensor drift (<20% rejection).
+- Deterministic Explainable Risk Engine: Multi-sensor cross-correlation computes 0-100 risk score; executes hardware trip in <80ms.
+- Dynamic A* Vector Pathfinding: Calculates real-time obstacle-free evacuation corridors steering workers away from expanding hazard plumes.
+
+5. QUANTUM MACHINE LEARNING (QML) & AI ANOMALY DETECTION (VQC / Parameterized Circuits)
+- Multi-Qubit Parameterized Circuits (PQC): Encodes vibration FFT and gas trajectories into multi-qubit Hilbert space using Angle/Amplitude maps.
+- Exponential Non-Linear Feature Separation: Quantum kernel trick detects subtle mechanical micro-fissures hidden within high-noise environments.
+- Hybrid Edge-to-QPU Predictive Pipeline: Edge TinyML Autoencoders filter routine noise; cloud quantum simulator estimates Remaining Useful Life (RUL).
+
+6. CLOUD LAKE, 3D DIGITAL TWIN & ENTERPRISE COMMAND (Three.js WebGL & Statutory EOC)
+- Dual-Storage Database: Zero-latency local SQLite WAL edge storage synchronizes securely with Cloud TimescaleDB / BigQuery.
+- Real-Time 3D Spatial Digital Twin: Three.js WebGL engine renders isometric plant replica, volumetric hazard bubbles, and worker heatmaps.
+- Enterprise SAP / ERP & Statutory Audits: Automates predictive maintenance work orders & exports unalterable audit logs for DGMS/NDMA compliance.
+      `.trim();
+
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("📋 Master Technical Bullet Points & Pitch Script copied to clipboard!");
+      });
+    }
+
+    function exportHighResPNG() {
+      showToast("⏳ Rendering Ultra High-Resolution 4K PNG for PowerPoint...");
+      const svgElement = document.getElementById('mainSvg');
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svgElement);
+
+      const canvas = document.getElementById('exportCanvas');
+      const ctx = canvas.getContext('2d');
+      const width = 4000;
+      const height = 1500;
+      canvas.width = width;
+      canvas.height = height;
+
+      const isDark = document.body.getAttribute('data-theme') === 'dark';
+      ctx.fillStyle = isDark ? '#070b14' : '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      // Header Badges on Canvas
+      ctx.fillStyle = isDark ? '#1e293b' : '#0f172a';
+      roundRect(ctx, 80, 45, 780, 75, 37, true, false);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 34px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('SENTINEL-X • COMPLETE WORKFLOW', 470, 96);
+
+      // Scenario Pill
+      ctx.fillStyle = isDark ? '#172554' : '#eff6ff';
+      roundRect(ctx, width - 960, 45, 880, 75, 37, true, false);
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.arc(width - 915, 82, 11, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = isDark ? '#60a5fa' : '#1d4ed8';
+      ctx.font = 'bold 26px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(scenarios[currentScenarioIndex].headerLabel.substring(0, 52) + '...', width - 885, 92);
+
+      const img = new Image();
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const URL = window.URL || window.webkitURL || window;
+      const blobURL = URL.createObjectURL(svgBlob);
+
+      img.onload = function() {
+        ctx.drawImage(img, 60, 160, width - 120, height - 190);
+        URL.revokeObjectURL(blobURL);
+
+        const pngURL = canvas.toDataURL('image/png');
+        const dlLink = document.createElement('a');
+        dlLink.download = `SENTINEL_X_COMPLETE_WORKFLOW_${scenarios[currentScenarioIndex].id.toUpperCase()}.png`;
+        dlLink.href = pngURL;
+        document.body.appendChild(dlLink);
+        dlLink.click();
+        document.body.removeChild(dlLink);
+        showToast("✅ 4K Ultra High-Res PNG downloaded! Drag it directly into your PPT.");
+      };
+
+      img.src = blobURL;
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      if (typeof stroke === 'undefined') stroke = true;
+      if (typeof radius === 'undefined') radius = 5;
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderSvg();
+    });
+  </script>
+</body>
+</html>

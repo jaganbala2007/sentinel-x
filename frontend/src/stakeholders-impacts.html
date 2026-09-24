@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SENTINEL-X | Stakeholders & Impacts Operational Flow (PPT Ready)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #f1f5f9;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border-color: #64748b;
+      --accent-blue: #2563eb;
+      --accent-green: #16a34a;
+      --accent-orange: #ea580c;
+      --accent-purple: #7c3aed;
+      --accent-red: #ef4444;
+      --badge-bg: #0f172a;
+      --scenario-bg: #eff6ff;
+      --scenario-border: #93c5fd;
+      --scenario-text: #1d4ed8;
+      --box-dash: #64748b;
+      --card-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      --curve-color: #1e293b;
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #090d16;
+      --bg-card: #111827;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #475569;
+      --accent-blue: #3b82f6;
+      --accent-green: #22c55e;
+      --accent-orange: #f97316;
+      --accent-purple: #a855f7;
+      --accent-red: #f87171;
+      --badge-bg: #1e293b;
+      --scenario-bg: #172554;
+      --scenario-border: #1e40af;
+      --scenario-text: #60a5fa;
+      --box-dash: #475569;
+      --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+      --curve-color: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Top Control Bar */
+    .control-bar {
+      width: 100%;
+      max-width: 1780px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--bg-card);
+      padding: 14px 24px;
+      border-radius: 16px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-badge {
+      background: #00F0FF;
+      color: #050b14;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .brand-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-main);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    .btn-secondary:hover {
+      background: rgba(148, 163, 184, 0.25);
+    }
+
+    .btn-accent {
+      background: #0f172a;
+      color: #ffffff;
+    }
+    [data-theme="dark"] .btn-accent {
+      background: #334155;
+    }
+
+    /* Main Slide Canvas Container */
+    .slide-wrapper {
+      width: 100%;
+      max-width: 1780px;
+      background: var(--bg-card);
+      border-radius: 20px;
+      box-shadow: var(--card-shadow);
+      padding: 36px 40px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Header within slide */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .header-pill {
+      background: var(--badge-bg);
+      color: #ffffff;
+      font-size: 19px;
+      font-weight: 900;
+      padding: 10px 28px;
+      border-radius: 9999px;
+      letter-spacing: 1.5px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .scenario-pill {
+      background: var(--scenario-bg);
+      border: 1.5px solid var(--scenario-border);
+      color: var(--scenario-text);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 22px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scenario-dot {
+      width: 10px;
+      height: 10px;
+      background: #2563eb;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #2563eb;
+    }
+
+    /* Diagram SVG Area */
+    .diagram-container {
+      width: 100%;
+      position: relative;
+    }
+
+    .diagram-container svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Presentation Slide Copy Modal / Drawer */
+    .copy-drawer {
+      display: none;
+      width: 100%;
+      max-width: 1780px;
+      margin-top: 24px;
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .copy-drawer.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .copy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+      margin-top: 18px;
+    }
+
+    .copy-card {
+      background: rgba(148, 163, 184, 0.08);
+      border-radius: 12px;
+      padding: 18px;
+      border-left: 4px solid #2563eb;
+    }
+
+    .copy-card h4 {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .copy-card p, .copy-card li {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      border: 1px solid #334155;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Print styles for export */
+    @media print {
+      body {
+        padding: 0;
+        background: #ffffff;
+      }
+      .control-bar, .copy-drawer, .toast {
+        display: none !important;
+      }
+      .slide-wrapper {
+        border: none;
+        box-shadow: none;
+        padding: 20px;
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body data-theme="light">
+
+  <!-- Top Action & Export Controls -->
+  <div class="control-bar">
+    <div class="brand-group">
+      <span class="brand-badge">SIH 2026</span>
+      <div>
+        <div class="brand-title">SENTINEL-X &bull; Stakeholders &amp; Impacts Deck Graphic</div>
+        <div class="brand-sub">Tailored for Tata Steel Mines &amp; Smelters | PS 26223 Disaster Resilience</div>
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" onclick="toggleScenario()" id="scenarioBtn">
+        🔄 Switch Scenario: <span id="currentScenarioText">Mines (Gas / Electrical)</span>
+      </button>
+      <button class="btn btn-secondary" onclick="toggleTheme()">
+        🌓 <span id="themeText">Dark Mode</span>
+      </button>
+      <button class="btn btn-secondary" onclick="toggleCopyDrawer()">
+        📋 PPT Slide Copy &amp; Notes
+      </button>
+      <button class="btn btn-primary" onclick="exportHighResPNG()">
+        📸 Export High-Res PNG (For PPT)
+      </button>
+      <a href="STAKEHOLDERS_AND_IMPACTS.svg" download="SENTINEL_X_STAKEHOLDERS_IMPACTS.svg" class="btn btn-accent" style="text-decoration:none;">
+        📥 Download Vector SVG
+      </a>
+    </div>
+  </div>
+
+  <!-- The 16:9 Presentation Canvas -->
+  <div class="slide-wrapper" id="slideArea">
+    <!-- Header Row -->
+    <div class="slide-header">
+      <div class="header-pill">
+        <span>STAKEHOLDERS &amp; IMPACTS</span>
+      </div>
+      <div class="scenario-pill">
+        <span class="scenario-dot"></span>
+        <span id="scenarioHeaderLabel">Tata Steel Mines &bull; Underground Hazard Containment</span>
+      </div>
+    </div>
+
+    <!-- The Complete Vector Flow Graphic -->
+    <div class="diagram-container" id="diagramContainer">
+      <!-- Embedded SVG that dynamically changes with scenarios -->
+      <svg id="mainSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 580" width="100%" height="100%" style="font-family:'Plus Jakarta Sans', 'Segoe UI', -apple-system, sans-serif;">
+        <defs>
+          <filter id="shadowBox" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.07"/>
+          </filter>
+          <marker id="mArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--curve-color, #1e293b)"/>
+          </marker>
+        </defs>
+
+        <!-- Dynamic Content injected via JS -->
+        <g id="svgContent"></g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- PPT Slide Copy Drawer -->
+  <div class="copy-drawer" id="copyDrawer">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h3 style="font-size:18px; font-weight:800;">📄 Ready-To-Paste Slide Content (For Microsoft PowerPoint / Google Slides)</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Copy directly into your Slide 5 or operational demo walkthrough.</p>
+      </div>
+      <button class="btn btn-primary" onclick="copyAllText()">📋 Copy All Text to Clipboard</button>
+    </div>
+
+    <div class="copy-grid">
+      <!-- 1. Mine Operator -->
+      <div class="copy-card">
+        <h4>① Mine Operator (*Underground Miner)</h4>
+        <p><strong>Action:</strong> Detects toxic gas leak (CH₄ / CO) or exposed live cable. Logs hands-free hazard alert via rugged badge voice control / SOS button.</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>Impact 1:</strong> Reduced Cognitive Fatigue &amp; Laser-Sharp Task Focus.</li>
+          <li><strong>Impact 2:</strong> Sub-second hands-free reporting with dynamic safe evacuation route guidance.</li>
+        </ul>
+      </div>
+
+      <!-- 2. Technician / Responder -->
+      <div class="copy-card">
+        <h4>② Mine Operator (*Electrician / Rapid Responder)</h4>
+        <p><strong>Action:</strong> Sentinel-X Edge Brain verifies sensor anomaly in &lt;800ms, auto-trips 415V breaker, and dispatches crew with exact 3D coordinates.</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>Impact 1:</strong> Faster deterministic decisions without waiting for slow human or cloud triage.</li>
+          <li><strong>Impact 2:</strong> Standard Operating Procedure (SMP) digital checklist compliance &amp; automated logbook generation.</li>
+        </ul>
+      </div>
+
+      <!-- 3. Safety Supervisor -->
+      <div class="copy-card">
+        <h4>③ Mine Supervisor (*Safety Officer / Shift In-Charge)</h4>
+        <p><strong>Action:</strong> Cross-validates multi-sensor telemetry (temperature + gas + vibration) via 3D Digital Twin, verifies SMP checklist, and signs off shift handover.</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>Impact 1:</strong> Zero-tamper SQLite Write-Ahead Log (WAL) for 100% audit-proof reporting.</li>
+          <li><strong>Impact 2:</strong> Continuous spatial safety tracking preventing secondary explosions or cave-ins.</li>
+        </ul>
+      </div>
+
+      <!-- 4. Mine Management -->
+      <div class="copy-card">
+        <h4>④ Mine Management (*Tata Steel GM Operations)</h4>
+        <p><strong>Action:</strong> Autonomous SAP/ERP synchronization of plant telemetry, tracking Remaining Useful Life (RUL) of extraction fans, conveyors, and smelters.</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>Impact 1:</strong> Zero unplanned downtime through proactive condition-based maintenance.</li>
+          <li><strong>Impact 2:</strong> Multi-site risk visualization with automated statutory audit reports.</li>
+        </ul>
+      </div>
+
+      <!-- 5. DGMS & Regulators -->
+      <div class="copy-card" style="border-left-color:#10b981;">
+        <h4>🏛️ Government &amp; Regulatory Bodies (DGMS, NDMA, Ministry of Mines)</h4>
+        <p><strong>Role:</strong> Statutory oversight, national safety compliance, and disaster prevention.</p>
+        <ul style="margin-left:18px; margin-top:8px;">
+          <li><strong>Impact 1:</strong> Real-time oversight with un-falsifiable edge-stamped telemetry logs.</li>
+          <li><strong>Impact 2:</strong> Cross-industry data analytics supporting proactive national safety policy &amp; DGMS guidelines.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toastMsg">✅ High-Res Image generated &amp; downloaded! Ready for your PPT.</div>
+
+  <!-- Hidden Canvas for High-Resolution 300DPI Rendering -->
+  <canvas id="exportCanvas" style="display:none;"></canvas>
+
+  <script>
+    // Scenarios Data
+    const scenarios = [
+      {
+        id: 'mines',
+        title: 'Mines (Gas / Electrical)',
+        headerLabel: 'Tata Steel Mines • Underground Hazard Containment Flow',
+        node1: {
+          role: 'MINE OPERATOR',
+          sub: '*Miner / Field Crew',
+          topCallout1: 'The operator reports',
+          topCallout2: 'hazard via smart voice / SOS',
+          actionTitle: 'Electrical / Gas Hazard',
+          actionDesc1: 'Detects exposed wire or CH₄ gas spike,',
+          actionDesc2: 'logged into Sentinel-X edge terminal',
+          impact1Title: 'Reduced Cognitive Fatigue &',
+          impact1Sub: 'Laser-Sharp Task Focus',
+          impact2Title: 'Instant Hands-Free SOS,',
+          impact2Sub: 'Safe Evacuation Route Guidance'
+        },
+        node2: {
+          role: 'MINE OPERATOR',
+          sub: '*Technician / Rapid Responder',
+          topCallout1: 'The Edge AI engine verifies',
+          topCallout2: 'hazard & dispatches nearest crew',
+          actionTitle: 'Issue Status & SMP Checklist',
+          actionDesc1: 'Isolates 415V breaker, clears digital',
+          actionDesc2: 'Safety Management Plan (SMP) on tablet',
+          impact1Title: 'Sub-800ms Deterministic Trip &',
+          impact1Sub: 'Instant IoT Situation Awareness',
+          impact2Title: 'Digital Task Documentation &',
+          impact2Sub: 'Optimized Emergency Dispatch'
+        },
+        node3: {
+          role: 'MINE SUPERVISOR',
+          sub: '*Safety Officer / Shift Controller',
+          topCallout1: '3D Digital Twin cross-validates',
+          topCallout2: 'multi-sensor telemetry with AI trust',
+          actionTitle: 'Duty Verification',
+          actionDesc1: 'Approves containment & SMP checklist',
+          actionDesc2: 'for 100% safe shift-to-shift handover',
+          impact1Title: 'Simplified Digital Audits with',
+          impact1Sub: 'Real-Time Zero-Tamper Logs',
+          impact2Title: 'Proactive Anomaly Prevention',
+          impact2Sub: 'Before Secondary Catastrophe'
+        },
+        node4: {
+          role: 'MINE MANAGEMENT',
+          sub: '*Tata Steel Plant & Mine Operations GM',
+          topCallout1: 'Enterprise ERP / SAP sync',
+          topCallout2: 'enhances disaster tracking & records',
+          actionTitle: 'Data Utilization',
+          actionDesc1: 'Utilize predictive RUL & risk analytics',
+          actionDesc2: 'for root cause audits & zero-loss CAPEX'
+        },
+        regBody: {
+          title: 'Government and Regulatory Bodies',
+          sub: '(DGMS, NDMA, Ministry of Mines, PESO & SPCB)',
+          bullet1Title: 'Real-Time Data Oversight & Statutory Compliance Monitoring',
+          bullet1Desc: 'Provides un-falsifiable SQLite WAL blackbox logs directly mapping to DGMS coal & metalliferous safety norms.',
+          bullet2Title: 'Targeted Regulatory Policymaking & National Safety Benchmarking',
+          bullet2Desc: 'Cross-mine hazard trends feed nationwide disaster resilience standards and early warning protocols.'
+        }
+      },
+      {
+        id: 'smelter',
+        title: 'Smelter / Blast Furnace (Thermal & Vibration)',
+        headerLabel: 'Tata Steel Plant • Smelter & Turbine Thermal Runaway Scenario',
+        node1: {
+          role: 'PLANT OPERATOR',
+          sub: '*Furnace & Hearth Operator',
+          topCallout1: 'Operator detects vibration spike',
+          topCallout2: 'or casing temperature anomaly',
+          actionTitle: 'Thermal Runaway Warning',
+          actionDesc1: 'PT100/DHT22 detects >115°C casing heat,',
+          actionDesc2: 'initiates local buzzer & terminal tag',
+          impact1Title: 'Zero Panic Escalation &',
+          impact1Sub: 'Direct Spatial HUD Awareness',
+          impact2Title: 'Immediate Isolation Trigger,',
+          impact2Sub: 'Personal Protective Shielding'
+        },
+        node2: {
+          role: 'MAINTENANCE TECH',
+          sub: '*Turbine & Electrical Specialist',
+          topCallout1: 'Sentinel-X AI classifies anomaly',
+          topCallout2: 'as bearing race fault vs sensor drift',
+          actionTitle: 'Interlock Status & LOTO Cleared',
+          actionDesc1: 'Locks out contactor, verifies cooling line,',
+          actionDesc2: 'completes digital Lockout-Tagout (LOTO)',
+          impact1Title: 'Eliminates False Alarm Trips',
+          impact1Sub: 'via Byzantine Sensor Voting',
+          impact2Title: 'Precision Spares Allocation',
+          impact2Sub: '& Accelerated Mean Time To Repair'
+        },
+        node3: {
+          role: 'PLANT SUPERVISOR',
+          sub: '*Chief Operations & Safety Engineer',
+          topCallout1: 'Digital Twin visualizes thermal plume',
+          topCallout2: 'and machine vibration spectrum',
+          actionTitle: 'Compliance Verification',
+          actionDesc1: 'Confirms thermal stabilization &',
+          actionDesc2: 'signs digital safe restart authorization',
+          impact1Title: 'Automated Shift Handover Logs',
+          impact1Sub: 'with Exact Timestamped Evidence',
+          impact2Title: 'Critical Asset Protection',
+          impact2Sub: 'Preventing Catastrophic Hearth Breach'
+        },
+        node4: {
+          role: 'PLANT LEADERSHIP',
+          sub: '*Tata Steel VP Manufacturing & Safety',
+          topCallout1: 'SAP Enterprise Asset Management sync',
+          topCallout2: 'updates Remaining Useful Life (RUL)',
+          actionTitle: 'Predictive ROI & Safety Matrix',
+          actionDesc1: 'Leverages edge blackbox logs to prevent',
+          actionDesc2: '₹50Cr+ unplanned furnace shutdowns'
+        },
+        regBody: {
+          title: 'Government and Industrial Authorities',
+          sub: '(PESO, Central Pollution Control Board, DISH)',
+          bullet1Title: 'Continuous Environmental Emissions & Industrial Safety',
+          bullet1Desc: 'Real-time telemetry prevents hazardous gas emissions, maintaining strict statutory air-quality compliance.',
+          bullet2Title: 'Benchmarked Industrial Standards for Heavy Metallurgy',
+          bullet2Desc: 'Proven cyber-physical resilience framework adopted for high-consequence national steel infrastructure.'
+        }
+      }
+    ];
+
+    let currentScenarioIndex = 0;
+
+    function renderSvg() {
+      const data = scenarios[currentScenarioIndex];
+      document.getElementById('currentScenarioText').innerText = data.title;
+      document.getElementById('scenarioHeaderLabel').innerText = data.headerLabel;
+
+      const content = `
+        <!-- Main Connecting Flow Curves -->
+        <path d="M 160 195 C 220 185, 260 215, 345 210 C 430 205, 470 185, 530 195" fill="none" stroke="var(--curve-color, #1e293b)" stroke-width="2.5" marker-end="url(#mArrow)"/>
+        <path d="M 575 195 C 640 185, 695 215, 790 210 C 885 205, 940 185, 1000 195" fill="none" stroke="var(--curve-color, #1e293b)" stroke-width="2.5" marker-end="url(#mArrow)"/>
+        <path d="M 1045 195 C 1110 185, 1160 215, 1250 210 C 1340 205, 1390 185, 1450 195" fill="none" stroke="var(--curve-color, #1e293b)" stroke-width="2.5" marker-end="url(#mArrow)"/>
+
+        <!-- Dashed connectors to impact boxes -->
+        <path d="M 90 255 L 90 350" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.8" stroke-dasharray="5 5"/>
+        <path d="M 500 255 L 500 350" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.8" stroke-dasharray="5 5"/>
+        <path d="M 965 255 L 965 350" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.8" stroke-dasharray="5 5"/>
+        <path d="M 1495 255 L 1495 350" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.8" stroke-dasharray="5 5"/>
+
+        <!-- ==================== NODE 1 ==================== -->
+        <!-- Top Callout -->
+        <g transform="translate(130, 70)">
+          <rect x="0" y="0" width="260" height="62" rx="10" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#shadowBox)"/>
+          <rect x="16" y="14" width="22" height="34" rx="4" fill="none" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+          <line x1="23" y1="18" x2="31" y2="18" stroke="var(--text-main, #0f172a)" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="27" cy="41" r="2.5" fill="var(--text-main, #0f172a)"/>
+          <path d="M 44 22 Q 49 31 44 40 M 50 16 Q 58 31 50 46" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round"/>
+          <text x="64" y="27" fill="var(--text-main, #0f172a)" font-size="12.5" font-weight="700">${data.node1.topCallout1}</text>
+          <text x="64" y="44" fill="var(--text-main, #0f172a)" font-size="12.5" font-weight="700">${data.node1.topCallout2}</text>
+        </g>
+        <path d="M 260 132 L 260 152 L 130 152 L 130 175" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+        <!-- Avatar & Label -->
+        <circle cx="48" cy="180" r="14" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+        <text x="48" y="186" fill="var(--text-main, #0f172a)" font-size="14" font-weight="800" text-anchor="middle">1</text>
+        
+        <g transform="translate(60, 168)">
+          <!-- Helmet -->
+          <path d="M 16 16 C 16 6, 40 6, 40 16 Z" fill="#eab308"/>
+          <rect x="12" y="16" width="32" height="4" rx="2" fill="#ca8a04"/>
+          <circle cx="28" cy="12" r="3.5" fill="#ffffff" stroke="#ca8a04" stroke-width="1.5"/>
+          <!-- Head -->
+          <circle cx="28" cy="25" r="8" fill="#fed7aa"/>
+          <!-- Vest -->
+          <path d="M 14 34 L 42 34 L 46 62 L 10 62 Z" fill="#f97316"/>
+          <rect x="20" y="34" width="16" height="28" fill="#3b82f6"/>
+          <line x1="13" y1="46" x2="43" y2="46" stroke="#facc15" stroke-width="3"/>
+        </g>
+        <text x="90" y="254" fill="var(--text-main, #0f172a)" font-size="14" font-weight="800" text-anchor="middle">${data.node1.role}</text>
+        <text x="90" y="271" fill="var(--text-muted, #475569)" font-size="11.5" font-weight="600" text-anchor="middle">${data.node1.sub}</text>
+
+        <!-- Mid Action 1 -->
+        <g transform="translate(230, 190)">
+          <rect x="15" y="0" width="34" height="24" rx="5" fill="#fef2f2" stroke="#ef4444" stroke-width="1.8"/>
+          <circle cx="26" cy="12" r="2.5" fill="#ef4444"/>
+          <circle cx="38" cy="12" r="2.5" fill="#ef4444"/>
+          <path d="M 49 9 Q 58 5 62 14 Q 66 23 75 19" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+          <text x="42" y="39" fill="var(--text-main, #0f172a)" font-size="13" font-weight="800" text-anchor="middle">${data.node1.actionTitle}</text>
+          <text x="42" y="54" fill="var(--text-muted, #475569)" font-size="11" font-weight="500" text-anchor="middle">${data.node1.actionDesc1}</text>
+          <text x="42" y="67" fill="var(--text-muted, #475569)" font-size="11" font-weight="500" text-anchor="middle">${data.node1.actionDesc2}</text>
+        </g>
+
+        <!-- Bottom Impact Box 1 -->
+        <g transform="translate(30, 350)">
+          <rect x="0" y="0" width="355" height="190" rx="12" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#shadowBox)"/>
+          <g transform="translate(18, 24)">
+            <circle cx="20" cy="20" r="14" fill="#f0fdf4"/>
+            <path d="M 12 16 Q 20 8 28 16 M 14 23 Q 20 27 26 23" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 4 10 L 8 14 M 36 10 L 32 14" stroke="#16a34a" stroke-width="2" stroke-linecap="round"/>
+            <text x="46" y="16" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node1.impact1Title}</text>
+            <text x="46" y="33" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node1.impact1Sub}</text>
+          </g>
+          <line x1="18" y1="92" x2="337" y2="92" stroke="rgba(148,163,184,0.25)" stroke-width="1.5"/>
+          <g transform="translate(18, 112)">
+            <circle cx="20" cy="20" r="14" fill="#eff6ff"/>
+            <path d="M 10 16 C 10 8 30 8 30 16 Z" fill="#3b82f6"/>
+            <path d="M 20 20 L 30 23 L 30 33 C 30 38 20 42 20 42 C 20 42 10 38 10 33 L 10 23 Z" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+            <path d="M 16 30 L 19 33 L 25 27" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+            <text x="46" y="16" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node1.impact2Title}</text>
+            <text x="46" y="33" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node1.impact2Sub}</text>
+          </g>
+        </g>
+
+        <!-- ==================== NODE 2 ==================== -->
+        <!-- Top Callout -->
+        <g transform="translate(540, 70)">
+          <rect x="0" y="0" width="280" height="62" rx="10" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#shadowBox)"/>
+          <rect x="14" y="14" width="30" height="30" rx="5" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+          <text x="29" y="34" fill="#7c3aed" font-size="12" font-weight="900" text-anchor="middle">AI</text>
+          <line x1="20" y1="10" x2="20" y2="14" stroke="#7c3aed" stroke-width="2"/>
+          <line x1="29" y1="10" x2="29" y2="14" stroke="#7c3aed" stroke-width="2"/>
+          <line x1="38" y1="10" x2="38" y2="14" stroke="#7c3aed" stroke-width="2"/>
+          <line x1="20" y1="44" x2="20" y2="48" stroke="#7c3aed" stroke-width="2"/>
+          <line x1="29" y1="44" x2="29" y2="48" stroke="#7c3aed" stroke-width="2"/>
+          <line x1="38" y1="44" x2="38" y2="48" stroke="#7c3aed" stroke-width="2"/>
+          <text x="56" y="27" fill="var(--text-main, #0f172a)" font-size="12.5" font-weight="700">${data.node2.topCallout1}</text>
+          <text x="56" y="44" fill="var(--text-main, #0f172a)" font-size="12.5" font-weight="700">${data.node2.topCallout2}</text>
+        </g>
+        <path d="M 680 132 L 680 152 L 535 152 L 535 175" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+        <!-- Avatar & Label -->
+        <circle cx="458" cy="180" r="14" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+        <text x="458" y="186" fill="var(--text-main, #0f172a)" font-size="14" font-weight="800" text-anchor="middle">2</text>
+
+        <g transform="translate(470, 168)">
+          <path d="M 16 16 C 16 6, 40 6, 40 16 Z" fill="#3b82f6"/>
+          <rect x="12" y="16" width="32" height="4" rx="2" fill="#1d4ed8"/>
+          <circle cx="28" cy="25" r="8" fill="#fed7aa"/>
+          <path d="M 14 34 L 42 34 L 46 62 L 10 62 Z" fill="#0284c7"/>
+          <line x1="14" y1="34" x2="42" y2="62" stroke="#facc15" stroke-width="2.5"/>
+          <line x1="42" y1="34" x2="14" y2="62" stroke="#facc15" stroke-width="2.5"/>
+          <line x1="44" y1="44" x2="52" y2="52" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <text x="500" y="254" fill="var(--text-main, #0f172a)" font-size="14" font-weight="800" text-anchor="middle">${data.node2.role}</text>
+        <text x="500" y="271" fill="var(--text-muted, #475569)" font-size="11.5" font-weight="600" text-anchor="middle">${data.node2.sub}</text>
+
+        <!-- Mid Action 2 -->
+        <g transform="translate(685, 190)">
+          <circle cx="42" cy="13" r="13" fill="var(--text-main, #0f172a)"/>
+          <path d="M 35 13 L 40 18 L 49 9" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="42" y="39" fill="var(--text-main, #0f172a)" font-size="13" font-weight="800" text-anchor="middle">${data.node2.actionTitle}</text>
+          <text x="42" y="54" fill="var(--text-muted, #475569)" font-size="11" font-weight="500" text-anchor="middle">${data.node2.actionDesc1}</text>
+          <text x="42" y="67" fill="var(--text-muted, #475569)" font-size="11" font-weight="500" text-anchor="middle">${data.node2.actionDesc2}</text>
+        </g>
+
+        <!-- Bottom Impact Box 2 -->
+        <g transform="translate(420, 350)">
+          <rect x="0" y="0" width="355" height="190" rx="12" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#shadowBox)"/>
+          <g transform="translate(18, 24)">
+            <polygon points="20,6 36,34 4,34" fill="#fffbeb" stroke="#d97706" stroke-width="2" stroke-linejoin="round"/>
+            <line x1="20" y1="16" x2="20" y2="24" stroke="#d97706" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="20" cy="29" r="1.5" fill="#d97706"/>
+            <text x="46" y="16" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node2.impact1Title}</text>
+            <text x="46" y="33" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node2.impact1Sub}</text>
+          </g>
+          <line x1="18" y1="92" x2="337" y2="92" stroke="rgba(148,163,184,0.25)" stroke-width="1.5"/>
+          <g transform="translate(18, 112)">
+            <rect x="8" y="6" width="22" height="28" rx="3" fill="#f8fafc" stroke="#475569" stroke-width="1.8"/>
+            <line x1="14" y1="14" x2="24" y2="14" stroke="#475569" stroke-width="1.8"/>
+            <line x1="14" y1="20" x2="24" y2="20" stroke="#475569" stroke-width="1.8"/>
+            <line x1="14" y1="26" x2="21" y2="26" stroke="#475569" stroke-width="1.8"/>
+            <text x="46" y="16" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node2.impact2Title}</text>
+            <text x="46" y="33" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node2.impact2Sub}</text>
+          </g>
+        </g>
+
+        <!-- ==================== NODE 3 ==================== -->
+        <!-- Top Callout -->
+        <g transform="translate(980, 70)">
+          <rect x="0" y="0" width="290" height="62" rx="10" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#shadowBox)"/>
+          <rect x="14" y="14" width="20" height="28" rx="3" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+          <circle cx="34" cy="34" r="8" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+          <line x1="40" y1="40" x2="47" y2="47" stroke="var(--text-main, #0f172a)" stroke-width="2.5" stroke-linecap="round"/>
+          <text x="56" y="27" fill="var(--text-main, #0f172a)" font-size="12.5" font-weight="700">${data.node3.topCallout1}</text>
+          <text x="56" y="44" fill="var(--text-main, #0f172a)" font-size="12.5" font-weight="700">${data.node3.topCallout2}</text>
+        </g>
+        <path d="M 1125 132 L 1125 152 L 1000 152 L 1000 175" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+        <!-- Avatar & Label -->
+        <circle cx="925" cy="180" r="14" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+        <text x="925" y="186" fill="var(--text-main, #0f172a)" font-size="14" font-weight="800" text-anchor="middle">3</text>
+
+        <g transform="translate(935, 168)">
+          <path d="M 16 16 C 16 6, 40 6, 40 16 Z" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+          <rect x="12" y="16" width="32" height="4" rx="2" fill="#cbd5e1"/>
+          <circle cx="28" cy="25" r="8" fill="#fed7aa"/>
+          <path d="M 14 34 L 42 34 L 46 62 L 10 62 Z" fill="#eab308"/>
+          <rect x="20" y="34" width="16" height="28" fill="#1e293b"/>
+          <polygon points="36,44 52,40 56,52 40,56" fill="#334155"/>
+          <line x1="40" y1="44" x2="50" y2="41" stroke="#38bdf8" stroke-width="2"/>
+        </g>
+        <text x="965" y="254" fill="var(--text-main, #0f172a)" font-size="14" font-weight="800" text-anchor="middle">${data.node3.role}</text>
+        <text x="965" y="271" fill="var(--text-muted, #475569)" font-size="11.5" font-weight="600" text-anchor="middle">${data.node3.sub}</text>
+
+        <!-- Mid Action 3 -->
+        <g transform="translate(1140, 190)">
+          <circle cx="42" cy="13" r="13" fill="#10b981"/>
+          <path d="M 35 13 L 39 17 L 49 8" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="42" y="39" fill="var(--text-main, #0f172a)" font-size="13" font-weight="800" text-anchor="middle">${data.node3.actionTitle}</text>
+          <text x="42" y="54" fill="var(--text-muted, #475569)" font-size="11" font-weight="500" text-anchor="middle">${data.node3.actionDesc1}</text>
+          <text x="42" y="67" fill="var(--text-muted, #475569)" font-size="11" font-weight="500" text-anchor="middle">${data.node3.actionDesc2}</text>
+        </g>
+
+        <!-- Bottom Impact Box 3 -->
+        <g transform="translate(810, 350)">
+          <rect x="0" y="0" width="355" height="190" rx="12" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#shadowBox)"/>
+          <g transform="translate(18, 24)">
+            <circle cx="20" cy="20" r="14" fill="#f8fafc" stroke="#475569" stroke-width="1.8"/>
+            <circle cx="20" cy="20" r="6" fill="#ffffff" stroke="#475569" stroke-width="1.8"/>
+            <path d="M 20 4 L 20 8 M 20 32 L 20 36 M 4 20 L 8 20 M 32 20 L 36 20" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+            <text x="46" y="16" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node3.impact1Title}</text>
+            <text x="46" y="33" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node3.impact1Sub}</text>
+          </g>
+          <line x1="18" y1="92" x2="337" y2="92" stroke="rgba(148,163,184,0.25)" stroke-width="1.5"/>
+          <g transform="translate(18, 112)">
+            <path d="M 20 6 L 34 12 L 34 24 C 34 32 20 38 20 38 C 20 38 6 32 6 24 L 6 12 Z" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+            <line x1="20" y1="14" x2="20" y2="24" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="20" cy="29" r="1.5" fill="#dc2626"/>
+            <text x="46" y="16" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node3.impact2Title}</text>
+            <text x="46" y="33" fill="var(--text-main, #0f172a)" font-size="13.5" font-weight="800">${data.node3.impact2Sub}</text>
+          </g>
+        </g>
+
+        <!-- ==================== NODE 4 ==================== -->
+        <!-- Top Callout -->
+        <g transform="translate(1420, 70)">
+          <rect x="0" y="0" width="290" height="62" rx="10" fill="var(--bg-card, #ffffff)" stroke="var(--box-dash, #64748b)" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#shadowBox)"/>
+          <rect x="14" y="14" width="30" height="20" rx="3" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+          <line x1="22" y1="34" x2="36" y2="34" stroke="#2563eb" stroke-width="2"/>
+          <line x1="29" y1="34" x2="29" y2="40" stroke="#2563eb" stroke-width="2"/>
+          <line x1="18" y1="40" x2="40" y2="40" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+          <text x="56" y="27" fill="var(--text-main, #0f172a)" font-size="12.5" font-weight="700">${data.node4.topCallout1}</text>
+          <text x="56" y="44" fill="var(--text-main, #0f172a)" font-size="12.5" font-weight="700">${data.node4.topCallout2}</text>
+        </g>
+        <path d="M 1565 132 L 1565 152 L 1495 152 L 1495 175" fill="none" stroke="var(--box-dash, #94a3b8)" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+        <!-- Avatar & Label -->
+        <circle cx="1435" cy="180" r="14" fill="var(--bg-card, #ffffff)" stroke="var(--text-main, #0f172a)" stroke-width="2"/>
+        <text x="1435" y="186" fill="var(--text-main, #0f172a)" font-size="14" font-weight="800" text-anchor="middle">4</text>
+
+        <g transform="translate(1455, 160)">
+          <!-- Building -->
+          <rect x="0" y="8" width="24" height="48" fill="#1e293b" rx="2"/>
+          <rect x="4" y="14" width="4" height="4" fill="#38bdf8"/>
+          <rect x="14" y="14" width="4" height="4" fill="#38bdf8"/>
+          <rect x="4" y="24" width="4" height="4" fill="#38bdf8"/>
+          <rect x="14" y="24" width="4" height="4" fill="#38bdf8"/>
+          <rect x="4" y="34" width="4" height="4" fill="#38bdf8"/>
+          <rect x="14" y="34" width="4" height="4" fill="#38bdf8"/>
+          <!-- Monitor -->
+          <rect x="28" y="22" width="30" height="22" rx="2" fill="#0f172a"/>
+          <polyline points="32,38 38,30 44,34 52,26" fill="none" stroke="#22c55e" stroke-width="2"/>
+          <line x1="43" y1="44" x2="43" y2="50" stroke="#0f172a" stroke-width="2"/>
+          <line x1="36" y1="50" x2="50" y2="50" stroke="#0f172a" stroke-width="2"/>
+        </g>
+        <text x="1495" y="254" fill="var(--text-main, #0f172a)" font-size="14" font-weight="800" text-anchor="middle">${data.node4.role}</text>
+        <text x="1495" y="271" fill="var(--text-muted, #475569)" font-size="11.5" font-weight="600" text-anchor="middle">${data.node4.sub}</text>
+
+        <!-- Mid Action 4 -->
+        <g transform="translate(1640, 190)">
+          <rect x="25" y="4" width="28" height="7" rx="2" fill="#475569"/>
+          <rect x="25" y="13" width="28" height="7" rx="2" fill="#475569"/>
+          <path d="M 18 26 C 18 20 25 18 30 20 C 34 16 45 16 49 22 C 54 22 58 26 58 31 C 58 36 52 38 47 38 L 20 38 C 14 38 12 32 18 26 Z" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/>
+          <text x="39" y="52" fill="var(--text-main, #0f172a)" font-size="13" font-weight="800" text-anchor="middle">${data.node4.actionTitle}</text>
+          <text x="39" y="67" fill="var(--text-muted, #475569)" font-size="11" font-weight="500" text-anchor="middle">${data.node4.actionDesc1}</text>
+          <text x="39" y="80" fill="var(--text-muted, #475569)" font-size="11" font-weight="500" text-anchor="middle">${data.node4.actionDesc2}</text>
+        </g>
+
+        <!-- ==================== REGULATORY BODIES ==================== -->
+        <g transform="translate(1200, 350)">
+          <rect x="0" y="0" width="570" height="190" rx="12" fill="var(--scenario-bg, #f8fafc)" stroke="var(--scenario-border, #cbd5e1)" stroke-width="1.8" filter="url(#shadowBox)"/>
+          <g transform="translate(20, 18)">
+            <path d="M 6 32 L 36 32 M 10 32 L 10 16 M 21 32 L 21 16 M 32 32 L 32 16 M 6 16 L 36 16 M 21 6 L 38 16 L 4 16 Z" fill="none" stroke="var(--text-main, #0f172a)" stroke-width="2" stroke-linecap="round"/>
+            <text x="48" y="20" fill="var(--text-main, #0f172a)" font-size="16" font-weight="900">${data.regBody.title}</text>
+            <text x="48" y="38" fill="var(--text-muted, #475569)" font-size="12" font-weight="700">${data.regBody.sub}</text>
+          </g>
+          <line x1="20" y1="72" x2="550" y2="72" stroke="rgba(148,163,184,0.25)" stroke-width="1.5"/>
+          <g transform="translate(24, 90)">
+            <circle cx="6" cy="8" r="4" fill="#2563eb"/>
+            <text x="20" y="12" fill="var(--text-main, #1e293b)" font-size="13.5" font-weight="800">${data.regBody.bullet1Title}</text>
+            <text x="20" y="30" fill="var(--text-muted, #475569)" font-size="12" font-weight="500">${data.regBody.bullet1Desc}</text>
+
+            <circle cx="6" cy="52" r="4" fill="#2563eb"/>
+            <text x="20" y="56" fill="var(--text-main, #1e293b)" font-size="13.5" font-weight="800">${data.regBody.bullet2Title}</text>
+            <text x="20" y="74" fill="var(--text-muted, #475569)" font-size="12" font-weight="500">${data.regBody.bullet2Desc}</text>
+          </g>
+        </g>
+      `;
+
+      document.getElementById('svgContent').innerHTML = content;
+    }
+
+    // Toggle Scenario Function
+    function toggleScenario() {
+      currentScenarioIndex = (currentScenarioIndex + 1) % scenarios.length;
+      renderSvg();
+      showToast(`Switched scenario to: ${scenarios[currentScenarioIndex].title}`);
+    }
+
+    // Toggle Theme
+    function toggleTheme() {
+      const body = document.body;
+      const currentTheme = body.getAttribute('data-theme');
+      const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+      body.setAttribute('data-theme', nextTheme);
+      document.getElementById('themeText').innerText = nextTheme === 'light' ? 'Dark Mode' : 'Light Mode';
+      renderSvg();
+    }
+
+    // Toggle Copy Drawer
+    function toggleCopyDrawer() {
+      const drawer = document.getElementById('copyDrawer');
+      drawer.classList.toggle('active');
+      if (drawer.classList.contains('active')) {
+        drawer.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // Toast notification
+    function showToast(msg) {
+      const toast = document.getElementById('toastMsg');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    // Copy all slide text
+    function copyAllText() {
+      const text = `
+SENTINEL-X: STAKEHOLDERS & OPERATIONAL IMPACTS (SIH 2026 / PS 26223)
+
+1. MINE OPERATOR (*Underground Miner / Field Crew)
+- Action: Notices hazardous gas anomaly (CH4 / CO) or exposed live electrical cable; logs report hands-free via smart voice control or emergency SOS tag.
+- Impact 1: Reduced Cognitive Fatigue & Laser-Sharp Task Focus.
+- Impact 2: Instant Hands-Free SOS with Dynamic Safe Evacuation Route Guidance.
+
+2. MINE OPERATOR (*Technician / Rapid Responder)
+- Action: Sentinel-X Edge Brain verifies sensor anomaly in <800ms, executes hardware breaker trip, dispatches response team with 3D spatial twin coordinates.
+- Impact 1: Faster deterministic decisions without waiting for slow human or cloud triage.
+- Impact 2: Standard Operating Procedure (SMP) digital checklist compliance & automated logbook generation.
+
+3. MINE SUPERVISOR (*Safety Officer / Shift Controller)
+- Action: Cross-validates multi-sensor telemetry (temperature + gas + vibration) via 3D Digital Twin, verifies SMP checklist, and signs off shift handover.
+- Impact 1: Simplified digital audits with real-time zero-tamper SQLite WAL blackbox logs.
+- Impact 2: Proactive anomaly prevention before secondary catastrophe (cave-ins/explosions).
+
+4. MINE MANAGEMENT (*Tata Steel GM Operations)
+- Action: Autonomous SAP/ERP synchronization of plant telemetry, tracking Remaining Useful Life (RUL) of extraction fans, conveyors, and smelters.
+- Impact 1: Zero unplanned downtime through proactive condition-based maintenance.
+- Impact 2: Multi-site risk visualization with automated statutory audit reports.
+
+5. GOVERNMENT & REGULATORY BODIES (DGMS, NDMA, Ministry of Mines)
+- Real-Time Data Oversight: Provides un-falsifiable edge-stamped telemetry logs directly mapping to DGMS coal & metalliferous safety norms.
+- Targeted Policy Formulation: Cross-mine hazard trends feed nationwide disaster resilience standards and early warning protocols.
+      `.trim();
+
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("📋 All Slide Bullet Points & Speaker Notes copied to clipboard!");
+      });
+    }
+
+    // Export High-Res 300 DPI PNG
+    function exportHighResPNG() {
+      showToast("⏳ Rendering High-Resolution 4K PNG for PowerPoint...");
+      const slide = document.getElementById('slideArea');
+      const svgElement = document.getElementById('mainSvg');
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svgElement);
+
+      const canvas = document.getElementById('exportCanvas');
+      const ctx = canvas.getContext('2d');
+      const width = 3840; // 4K resolution
+      const height = 1450;
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw background
+      const isDark = document.body.getAttribute('data-theme') === 'dark';
+      ctx.fillStyle = isDark ? '#111827' : '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw Title Pill
+      ctx.fillStyle = isDark ? '#1e293b' : '#0f172a';
+      roundRect(ctx, 80, 50, 680, 80, 40, true, false);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('STAKEHOLDERS & IMPACTS', 420, 104);
+
+      // Scenario Pill
+      ctx.fillStyle = isDark ? '#172554' : '#eff6ff';
+      roundRect(ctx, width - 820, 50, 740, 80, 40, true, false);
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.arc(width - 770, 90, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = isDark ? '#60a5fa' : '#1d4ed8';
+      ctx.font = 'bold 28px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(scenarios[currentScenarioIndex].headerLabel, width - 740, 100);
+
+      // Convert SVG to Image and draw to canvas
+      const img = new Image();
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const URL = window.URL || window.webkitURL || window;
+      const blobURL = URL.createObjectURL(svgBlob);
+
+      img.onload = function() {
+        ctx.drawImage(img, 80, 180, width - 160, height - 220);
+        URL.revokeObjectURL(blobURL);
+
+        // Download PNG
+        const pngURL = canvas.toDataURL('image/png');
+        const dlLink = document.createElement('a');
+        dlLink.download = `SENTINEL_X_STAKEHOLDERS_IMPACTS_${scenarios[currentScenarioIndex].id.toUpperCase()}.png`;
+        dlLink.href = pngURL;
+        document.body.appendChild(dlLink);
+        dlLink.click();
+        document.body.removeChild(dlLink);
+        showToast("✅ 4K High-Res PNG downloaded! Drag it directly into PowerPoint.");
+      };
+
+      img.src = blobURL;
+    }
+
+    // Helper for rounded rectangles on Canvas
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      if (typeof stroke === 'undefined') stroke = true;
+      if (typeof radius === 'undefined') radius = 5;
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    // Initial render
+    window.addEventListener('DOMContentLoaded', () => {
+      renderSvg();
+    });
+  </script>
+</body>
+</html>
